@@ -121,15 +121,16 @@ class Permissions(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_key_only_for_admins(self):
+        here = self.app.servers.default()["id"]  # the lab's list is in state/ (not in git): this machine
         with self.assertRaises(PermissionError):
-            self.app.target({"server": "thor"}, {"user": "guest", "admin": False})
-        target, account, password = self.app.target({"server": "thor", "account": "someone", "password": "pw"}, {"user": "x", "admin": False})
+            self.app.target({"server": here}, {"user": "guest", "admin": False})
+        target, account, password = self.app.target({"server": here, "account": "someone", "password": "pw"}, {"user": "x", "admin": False})
         self.assertFalse(target.local)  # a password always goes through SSH, never this account
         argv = target.ssh_argv("true")
         self.assertIn("PubkeyAuthentication=no", argv)  # a wrong password never falls back to the key
         self.assertNotIn("pw", " ".join(argv))
         with self.assertRaises(ValueError):
-            self.app.target({"server": "thor", "account": "bad name", "password": "x"}, {"user": "x", "admin": True})
+            self.app.target({"server": here, "account": "bad name", "password": "x"}, {"user": "x", "admin": True})
 
     def test_encrypted_password(self):
         cipher = "rsa:" + base64.b64encode(self.app.key.encrypt("s3cret é".encode())).decode()
