@@ -67,7 +67,7 @@ export class Scatter {
     for (let i = 0; i < n; i++) { this.px[i] = sx(d.x[i]); this.py[i] = sy(d.y[i]); }
 
     // axes and ticks
-    ctx.font = '11px "Manrope Variable", system-ui, sans-serif';
+    ctx.font = '11px system-ui, sans-serif';
     ctx.strokeStyle = css('--border'); ctx.fillStyle = css('--text-3'); ctx.lineWidth = 1;
     for (const t of ticks(x0, x1)) {
       const p = sx(t);

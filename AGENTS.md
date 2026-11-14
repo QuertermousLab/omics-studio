@@ -79,9 +79,11 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
   `python -m unittest discover hub/tests` (also run in CI).
 - Never delete or overwrite source data on `/nfs`; conversions write to `<source>.vizhub/` next to it.
 - Exported figures (PNG / SVG of the viewers, plots and Genome Canvas) are set in Arial (the user's rule).
-- Interface type (the user's choice, 2026-11-13): headings (`--heading-font`, "Studio Heading") in Anthropic Serif; body,
-  buttons and tables in Manrope (`--font`). Serif body text was tried the same day and the user went back to Manrope:
-  keep "Studio Heading" out of `--font`. The face has one weight (Regular): its `@font-face` covers weights 100-900, so
+- Interface type (the user's choices, 2026-11-13): headings (`--heading-font`, "Studio Heading") in Anthropic Serif; body,
+  buttons and tables in the system font (`--font: system-ui, …`: San Francisco on a Mac, Segoe UI on Windows, PingFang /
+  Microsoft YaHei for Chinese), also in the Mac apps' native parts (`GCUIFont`, `systemFontOfSize:weight:`). Manrope was
+  the text face before (its files stay, the pages no longer load it); serif body text was tried and rejected: keep
+  "Studio Heading" out of `--font`. Monospace stays JetBrains Mono, exported figures Arial. The face has one weight (Regular): its `@font-face` covers weights 100-900, so
   headings are never drawn faux-bold. It is proprietary: it lives only in `state/fonts/heading-serif.ttf` on the server
   (never commit it; the Mac apps do not bundle it), served by the hub build (`/hub/static/fonts/`) and the sign-in
   server (`/auth/fonts/`); where it is missing, headings fall back to Fraunces.

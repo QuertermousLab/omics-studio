@@ -265,7 +265,7 @@
     ctx.clearRect(0, 0, W, H);
     const L = 22, B = 14, plotH = H - B - 4, colW = (W - L) / pwm.length;
     ctx.fillStyle = css('--text-3'); ctx.strokeStyle = css('--border-strong');
-    ctx.font = '10px "Manrope Variable", sans-serif';
+    ctx.font = '10px system-ui, sans-serif';
     ctx.textAlign = 'right';
     for (const bits of [0, 1, 2]) {
       const y = 4 + plotH - (bits / 2) * plotH;
@@ -276,7 +276,7 @@
     ctx.textAlign = 'center';
     ctx.font = 'bold 100px "JetBrains Mono Variable", monospace';
     pwm.forEach((col, x) => {
-      if (pwm.length <= 30 || x % 5 === 0) { ctx.save(); ctx.font = '9px "Manrope Variable", sans-serif'; ctx.fillStyle = css('--text-3'); ctx.fillText(String(x + 1), L + (x + 0.5) * colW, H - 2); ctx.restore(); }
+      if (pwm.length <= 30 || x % 5 === 0) { ctx.save(); ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = css('--text-3'); ctx.fillText(String(x + 1), L + (x + 0.5) * colW, H - 2); ctx.restore(); }
       const ic = 2 + col.reduce((t, p) => t + (p > 0 ? p * Math.log2(p) : 0), 0);
       let y = 4 + plotH;
       [0, 1, 2, 3].sort((a, b) => col[a] - col[b]).forEach((k) => {

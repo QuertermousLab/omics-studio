@@ -192,7 +192,7 @@ export class AtacPanel {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     const L = this.locus, pw = this.plotW(), span = L.end - L.start, x = (bp: number) => LABEL_W + ((bp - L.start) / span) * pw;
-    ctx.font = '11px "Manrope Variable", system-ui, sans-serif';
+    ctx.font = '11px system-ui, sans-serif';
 
     // ruler
     ctx.fillStyle = css('--text-3'); ctx.strokeStyle = css('--border');

@@ -107,8 +107,9 @@ the web app: plain HTML, CSS and ES modules.
   Night" dark (`html[data-theme="dark"]`), following the OS with a manual toggle
   (saved in `localStorage` key `genome-canvas:theme`). Dark track canvas `#2e3440`.
   **No bright blue and no purple** in the interface.
-- **Fonts:** Manrope (UI), Fraunces (headings), JetBrains Mono (loci, code) in
-  both themes and in the Mac app.
+- **Fonts:** the system font (UI text, `--font: system-ui, …`; Manrope until 2026-11-13, still bundled),
+  Anthropic Serif from the hub when the server has it, else Fraunces (headings), JetBrains Mono (loci, code), in both
+  themes and in the Mac app (native text: `GCUIFont` = `systemFontOfSize:weight:`).
 - **Layout:** classic: top bar, left track library, canvas toolbar row.
 - **Exported figures are set in Arial** (PNG export rewrites IGV's fonts with `arialFonts`; LocusCompare and the hub's
   plots draw in Arial). Asked by the user on 2026-11-02, for every image export.

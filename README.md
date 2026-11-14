@@ -116,8 +116,8 @@ omics-studio/            (on THOR: /nfs/baldar/quanyiz/vizhub)
 
 ## Look and workspaces
 
-- All pages use Genome Canvas's Nord light / dark theme, fonts and controls (`hub/web/src/theme.css`): text in Manrope,
-  headings in Anthropic Serif when the server has the font in `state/fonts/heading-serif.ttf` (a proprietary face, not
+- All pages use Genome Canvas's Nord light / dark theme, fonts and controls (`hub/web/src/theme.css`): text in the
+  system font (San Francisco on a Mac, Segoe UI on Windows), headings in Anthropic Serif when the server has the font in `state/fonts/heading-serif.ttf` (a proprietary face, not
   in the repository: put the file there and run `./vizhubctl build`), else Fraunces. They share Genome Canvas's theme
   setting (`localStorage` key `genome-canvas:theme`, same origin): the sun/moon button switches every tool.
 - The viewers' plot background follows the theme (Genome Canvas's canvas color: white / `#2e3440`) unless a color is set

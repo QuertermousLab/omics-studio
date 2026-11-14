@@ -67,7 +67,7 @@ GC_COLOR(GCGreenTextColor, 0x5a7642, 1, 0xb9d4a2, 1)
 
 #pragma mark - Bundled fonts
 
-// Manrope, Fraunces and JetBrains Mono are the web interface's fonts (SIL OFL),
+// Fraunces and JetBrains Mono are the web interface's fonts (SIL OFL; Manrope, the former text face, stays bundled),
 // bundled as variable TrueType files in Resources/Fonts.
 static void GCRegisterBundledFonts(void) {
     for (NSURL *url in [[NSBundle mainBundle] URLsForResourcesWithExtension:@"ttf" subdirectory:@"Fonts"] ?: @[]) {
@@ -95,7 +95,11 @@ static NSFont *GCVariableFont(NSString *family, CGFloat size, CGFloat weight, BO
     return font;
 }
 
-static NSFont *GCUIFont(CGFloat size, CGFloat weight) { return GCVariableFont(@"Manrope", size, weight, NO); }
+// interface text in the system font (San Francisco), as the web pages (--font: system-ui; the user's choice, 2026-11-13)
+static NSFont *GCUIFont(CGFloat size, CGFloat weight) {
+    NSFontWeight w = weight >= 700 ? NSFontWeightBold : weight >= 600 ? NSFontWeightSemibold : weight >= 500 ? NSFontWeightMedium : NSFontWeightRegular;
+    return [NSFont systemFontOfSize:size weight:w];
+}
 static NSFont *GCHeadingFont(CGFloat size) { return GCVariableFont(@"Fraunces", size, 600, NO); }
 static NSFont *GCMonoFont(CGFloat size, CGFloat weight) { return GCVariableFont(@"JetBrains Mono", size, weight, YES); }
 
