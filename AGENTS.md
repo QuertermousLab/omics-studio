@@ -79,14 +79,13 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
   `python -m unittest discover hub/tests` (also run in CI).
 - Never delete or overwrite source data on `/nfs`; conversions write to `<source>.vizhub/` next to it.
 - Exported figures (PNG / SVG of the viewers, plots and Genome Canvas) are set in Arial (the user's rule).
-- Interface type (the user's choices, 2026-11-13): headings (`--heading-font`, "Studio Heading") in Anthropic Serif; body,
-  buttons and tables in the system font (`--font: system-ui, …`: San Francisco on a Mac, Segoe UI on Windows, PingFang /
-  Microsoft YaHei for Chinese), also in the Mac apps' native parts (`GCUIFont`, `systemFontOfSize:weight:`). Manrope was
-  the text face before (its files stay, the pages no longer load it); serif body text was tried and rejected: keep
-  "Studio Heading" out of `--font`. Monospace stays JetBrains Mono, exported figures Arial. The face has one weight (Regular): its `@font-face` covers weights 100-900, so
-  headings are never drawn faux-bold. It is proprietary: it lives only in `state/fonts/heading-serif.ttf` on the server
-  (never commit it; the Mac apps do not bundle it), served by the hub build (`/hub/static/fonts/`) and the sign-in
-  server (`/auth/fonts/`); where it is missing, headings fall back to Fraunces.
+- Interface type (the user's choice, 2026-11-13): everything in the system font — text, buttons, tables (`--font:
+  system-ui, …`: San Francisco on a Mac, Segoe UI on Windows, PingFang / Microsoft YaHei for Chinese) and headings
+  (`--heading-font: var(--font)`, at weight 600-650) — also in the Mac apps' native parts (`GCUIFont`, `GCHeadingFont`:
+  `systemFontOfSize:weight:`). Tried and dropped the same day: Manrope text with Fraunces, then Anthropic Serif, headings,
+  and Anthropic Serif text. Manrope and Fraunces files stay (the Mac apps bundle them, the pages no longer load them);
+  Anthropic Serif (proprietary) is no longer served (`state/fonts/` is unused; never commit that face). Monospace stays
+  JetBrains Mono, exported figures Arial.
 - Icons: Omics Studio `hub/web/pages/studio.svg` (home page, the "Omics Studio" button, sign-in and admin), Omics Canvas
   `favicon.svg` (the viewers, its Mac app), Omics Workbench `workbench.svg` (its pages, its Mac app), Genome Canvas and GREAT
   their own.

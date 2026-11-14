@@ -70,7 +70,7 @@ GC_COLOR(GCGreenTextColor, 0x5a7642, 1, 0xb9d4a2, 1)
 
 #pragma mark - Bundled fonts
 
-// Fraunces and JetBrains Mono are the web interface's fonts (SIL OFL; Manrope, the former text face, stays bundled),
+// JetBrains Mono is the web interface's monospace font (SIL OFL; Manrope and Fraunces, the former text and heading faces, stay bundled),
 // bundled as variable TrueType files in Resources/Fonts.
 static void GCRegisterBundledFonts(void) {
     for (NSURL *url in [[NSBundle mainBundle] URLsForResourcesWithExtension:@"ttf" subdirectory:@"Fonts"] ?: @[]) {
@@ -103,7 +103,7 @@ static NSFont *GCUIFont(CGFloat size, CGFloat weight) {
     NSFontWeight w = weight >= 700 ? NSFontWeightBold : weight >= 600 ? NSFontWeightSemibold : weight >= 500 ? NSFontWeightMedium : NSFontWeightRegular;
     return [NSFont systemFontOfSize:size weight:w];
 }
-static NSFont *GCHeadingFont(CGFloat size) { return GCVariableFont(@"Fraunces", size, 600, NO); }
+static NSFont *GCHeadingFont(CGFloat size) { return [NSFont systemFontOfSize:size weight:NSFontWeightSemibold]; }  // as the pages: the system font
 static NSFont *GCMonoFont(CGFloat size, CGFloat weight) { return GCVariableFont(@"JetBrains Mono", size, weight, YES); }
 
 static NSView *GCFindView(NSView *root, NSString *identifier) {
