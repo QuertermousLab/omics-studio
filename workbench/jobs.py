@@ -36,9 +36,9 @@ ACTIVE = {"starting", "running"}
 JOB_ID = re.compile(r"[a-z0-9]{12}")
 LOG_CHUNK = 256 * 1024
 
-# job folders of downloads run in this service's account into shared folders: in this account's home (not writable by
-# others, unlike /nfs), so nobody can swap their log, pid or scripts
-PRIVATE_RUNS = Path(os.environ.get("OMICS_WORKBENCH_PRIVATE_RUNS") or os.path.expanduser("~/.local/state/omics-workbench/runs"))
+# job folders of downloads run in this service's account into shared folders: in this checkout's state (mode 700; the
+# checkout is not writable by others, unlike the shared folders), so nobody can swap their log, pid or scripts
+PRIVATE_RUNS = Path(os.environ.get("OMICS_WORKBENCH_PRIVATE_RUNS") or Path(__file__).resolve().parents[1] / "state" / "workbench" / "runs")
 
 WRAPPER = r"""#!/bin/bash
 # Omics Workbench job @ID@ (@TITLE@). Started by the web server; everything it prints is in ./log.
