@@ -1521,8 +1521,13 @@ static BOOL OWEndedRecently(NSDictionary *job) {
     [self setAppearancePreference:themes.firstObject];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         NSString *path = [directory stringByAppendingPathComponent:[NSString stringWithFormat:@"window-%@.png", themes.firstObject]];
-        [self captureWindowToPath:path completion:^{
-            [self captureThemes:[themes subarrayWithRange:NSMakeRange(1, themes.count - 1)] directory:directory];
+        // the page's own state, so CI can check that the page followed the window ("page theme: <window> <page> <bg>")
+        NSString *probe = @"(() => { const d = document.documentElement; return [location.pathname, d.dataset.theme || '-', !!window.VizHubDesktop, getComputedStyle(document.body).backgroundColor].join(' '); })()";
+        [self.webView evaluateJavaScript:probe completionHandler:^(id result, NSError *error) {
+            NSLog(@"page theme: %@ %@", themes.firstObject, [result isKindOfClass:[NSString class]] ? result : (error.localizedDescription ?: @"?"));
+            [self captureWindowToPath:path completion:^{
+                [self captureThemes:[themes subarrayWithRange:NSMakeRange(1, themes.count - 1)] directory:directory];
+            }];
         }];
     });
 }

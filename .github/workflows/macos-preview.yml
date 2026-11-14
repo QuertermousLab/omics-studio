@@ -70,6 +70,40 @@ jobs:
           grep -q "notification: Finished: RNA-seq · example time course" "${log}"
           grep -q "notification: Failed: Cell Ranger · example PBMC" "${log}"
           test -f "${{ matrix.dir }}/dist/preview/${{ matrix.bundle }}/Contents/Resources/OmicsWorkbench.icns"
+      - name: Capture Omics Workbench connected to a test server (the page must follow the window's theme)
+        if: matrix.app == 'omics-workbench'
+        working-directory: ${{ matrix.dir }}
+        shell: bash
+        run: |
+          # a test server on the runner (sign-in off: no OMICS_CANVAS_AUTH): the Workbench service, Genome Canvas for
+          # workspaces, the hub's built pages served as plain files, and the Python gateway in front
+          R="${GITHUB_WORKSPACE}"
+          shots="${RUNNER_TEMP}/shots/server"
+          mkdir -p "${shots}" "${RUNNER_TEMP}/gc-state" "${RUNNER_TEMP}/wb-state"
+          (cd "${R}/hub/web" && npm ci --no-audit --no-fund > "${shots}/npm.log" 2>&1 && node build.mjs >> "${shots}/npm.log" 2>&1)
+          (cd "${R}" && python3 -m http.server 8893 --bind 127.0.0.1 > "${shots}/static.log" 2>&1 &)
+          GENOME_CANVAS_STATE_DIR="${RUNNER_TEMP}/gc-state" python3 "${R}/genome-canvas/server.py" --host 127.0.0.1 --port 8000 > "${shots}/gc.log" 2>&1 &
+          python3 "${R}/workbench/server.py" --state "${RUNNER_TEMP}/wb-state" --interval 3600 > "${shots}/workbench.log" 2>&1 &
+          python3 "${R}/gateway/gateway.py" --listen 127.0.0.1 --port 8892 > "${shots}/gateway.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -fs http://127.0.0.1:8892/workbench/ > /dev/null && curl -fs http://127.0.0.1:8892/hub/static/workbench.css > /dev/null && break
+            sleep 1
+          done
+          curl -fsS -o /dev/null -w "workbench page %{http_code}\n" http://127.0.0.1:8892/workbench/
+          d=edu.stanford.quertermouslab.omicsworkbench; p=OmicsWorkbenchConnection
+          defaults write $d ${p}Host 127.0.0.1; defaults write $d ${p}Port -int 8892; defaults write $d ${p}Scheme http
+          defaults write $d ${p}Path /; defaults write $d ${p}UseTunnel -bool false
+          env OMICS_WORKBENCH_SNAPSHOT_DIR="${shots}" \
+            "dist/preview/${{ matrix.bundle }}/Contents/MacOS/${{ matrix.binary }}" > "${shots}/app.log" 2>&1 &
+          for attempt in $(seq 1 60); do
+            [[ -f "${shots}/window-dark.png" ]] && break
+            sleep 2
+          done
+          ls -la "${shots}"
+          grep "page theme:" "${shots}/app.log"
+          # "page theme: <window> <path> <page data-theme> <bridge> <body background>"
+          grep -q "page theme: light /workbench/ light true" "${shots}/app.log"
+          grep -q "page theme: dark /workbench/ dark true" "${shots}/app.log"
       - name: Capture Genome Canvas connected to a server
         if: matrix.app == 'genome-canvas'
         working-directory: ${{ matrix.dir }}
