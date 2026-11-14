@@ -1,4 +1,4 @@
-// The home page: tool cards in groups, with the services' status (Genome Canvas, GREAT) and each viewer's dataset counts
+// The home page: tool cards in groups, with the services' status (Genome Canvas, GREAT, Omics Workbench) and each viewer's dataset counts
 // (yours, shared in the lab).
 import { api, initChrome, loadWorkspace, onWorkspace } from './common';
 
@@ -9,8 +9,10 @@ api<{ id: string; ok: boolean }[]>('/hub/api/services').then((list) => {
   for (const el of document.querySelectorAll<HTMLElement>('[data-tool] [data-state]')) {
     const tool = el.closest<HTMLElement>('[data-tool]')!.dataset.tool;
     const service = list.find((x) => x.id === tool);
-    el.textContent = service?.ok ? 'online' : 'offline';
-    el.className = `chip ${service?.ok ? 'chip--ok' : 'chip--bad'}`;
+    const show = (ok: boolean) => { el.textContent = ok ? 'online' : 'offline'; el.className = `chip ${ok ? 'chip--ok' : 'chip--bad'}`; };
+    if (service) show(service.ok);
+    // a service the hub does not check yet (added after it started): ask it directly
+    else fetch(`/${tool}/api/health`).then((r) => show(r.ok)).catch(() => show(false));
   }
 }).catch(() => {});
 

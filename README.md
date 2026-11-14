@@ -1,6 +1,11 @@
-# Omics Canvas
+# Omics Studio
 
-Self-hosted viewers for a lab's genomics data, in one place:
+Self-hosted tools for a lab's genomics data, in one place (the repository was called Omics Canvas, before that Genome
+Canvas), in three parts:
+
+1. **Genome Canvas** and GREAT — genomes and regions.
+2. **Omics Canvas** — the spatial, single-cell and CRISPR viewers and their data manager.
+3. **Omics Workbench** — analysis on the lab's servers: downloads, the bulk and single-cell pipelines, server load.
 
 - **Genome Canvas** (`genome-canvas/`) — IGV.js-based genome and epigenome browser with a Python
   backend and a native macOS app (unchanged history; see [genome-canvas/README.md](genome-canvas/README.md)).
@@ -14,9 +19,15 @@ Self-hosted viewers for a lab's genomics data, in one place:
   spatial ATAC (peaks, gene activity, chromVAR motifs, accessibility tracks from fragment files).
 - **Omics Canvas for Mac** (`desktop/OmicsCanvasDesktop/`) — a native window for the three viewers,
   built like Genome Canvas Desktop.
+- **Omics Workbench** (`workbench/`, at `/workbench/`) — download sequencing data (delivery e-mails, FTP / SFTP / HTTPS,
+  s3://, GEO / SRA), run RNA-seq, ChIP-seq, CUT&RUN, CUT&Tag, ATAC-seq and Cell Ranger + Seurat with the lab's
+  Pipelines-Wrappers on the server you choose (THOR, LOKI, ZORAN, …), in the background with a live log and e-mail;
+  administrators see every server's load ([workbench/README.md](workbench/README.md)). Its Mac app:
+  `desktop/OmicsWorkbenchDesktop/`.
 
 Downloads (Apple Silicon): [Genome Canvas](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/GenomeCanvasDesktop-macOS-arm64.zip) ·
-[Omics Canvas](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/OmicsCanvasDesktop-macOS-arm64.zip).
+[Omics Canvas](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/OmicsCanvasDesktop-macOS-arm64.zip) ·
+[Omics Workbench](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/OmicsWorkbenchDesktop-macOS-arm64.zip).
 The apps are ad-hoc signed: after unzipping, run `xattr -dr com.apple.quarantine "/Applications/<App>.app"` once.
 
 **How to use it: [docs/TUTORIAL.md](docs/TUTORIAL.md)** — all four modules, shared data, data management and the Mac apps, with
@@ -36,15 +47,17 @@ from the admin page ([auth/README.md](auth/README.md)); "keep me signed in" last
 | `/crispr/` · `/crispr/<screen>/` | Your CRISPR screens · the CRISPR screen explorer | hub |
 | `/genome-canvas/` | Genome Canvas | `genome-canvas/server.py` (127.0.0.1:8000) |
 | `/great/` | GREAT: page, API, rGREAT's `public/cgi-bin/*.php`, `rgreat.R` | `great/server.py` (127.0.0.1:8894, worker processes) |
-| `/auth/` · `/admin/` | Sign-in page · admin page (access passwords, sessions, sign-in and GREAT settings) | `auth/server.py` (127.0.0.1:8895) |
+| `/auth/` · `/admin/` | Sign-in page · admin page (access passwords, sessions, sign-in, GREAT, servers and Workbench settings) | `auth/server.py` (127.0.0.1:8895) |
+| `/workbench/` | Omics Workbench: downloads, bulk and single-cell pipelines, jobs | `workbench/server.py` (127.0.0.1:8896) |
 | `/lab` and everything else | JupyterLab (its own sign-in) | `jupyter-lab.service` (127.0.0.1:8891) |
 
 Viewer links take `?s=<slide>&assay=<assay>&gene=<gene>`; the explorer takes `?t=<target>&g=<gene>`.
 
 ### Deploying on another server
 
-Everything runs as one user with systemd user units behind an Apache gateway (Debian / Ubuntu `apache2`, modules
-proxy, proxy_http, proxy_wstunnel, headers, rewrite). The defaults are THOR's; on another server:
+Everything runs as one user with systemd user units behind a gateway: Apache (Debian / Ubuntu `apache2`, modules
+proxy, proxy_http, proxy_wstunnel, headers, rewrite) when it is installed, else `gateway/gateway.py` (Python, the same
+routes; `VIZHUB_GATEWAY=auto`). The defaults are THOR's; on another server:
 
 ```bash
 uv venv --python python3.12 hub/venv && VIRTUAL_ENV=hub/venv uv pip install -r hub/requirements.txt
@@ -79,14 +92,16 @@ Genome Canvas keeps its own `genome-canvas/genomecanvas.config.json` (data roots
 
 ```
 omics-canvas/            (on THOR: /nfs/baldar/quanyiz/vizhub)
-  vizhubctl              status | start | stop | restart [hub|canvas|great|auth|gateway] | logs | access | install | build
+  vizhubctl              status | start | stop | restart [hub|canvas|great|auth|workbench|gateway] | logs | access | install | build
   gateway/apache.conf.in the Apache gateway template (apache.conf is generated; logs in gateway/logs/)
+  gateway/gateway.py     the same gateway in Python (used when Apache is not installed)
   deploy/                site.env.example (server settings), configure.py, systemd/*.in unit templates
                          (vizhub-hub, genome-canvas, vizhub-great, vizhub-auth, vizhub-gateway alias genome-canvas-gateway,
                          JupyterLab drop-in)
   genome-canvas/         Genome Canvas (web app, server, macOS app)
   great/                 GREAT (server.py, engine great.py, web/, tools/fetch_great_data.py, data/ not in git)
   auth/                  sign-in and admin pages (server.py, sessions.py used by every backend, PAM helper)
+  workbench/             Omics Workbench (server.py, jobs, server monitor, pipelines, download.py, scripts/sc_analysis.R)
   hub/
     server.py config.json  backend (FastAPI) and its settings (config.example.json in git; roots, Rscript, jobs)
     converters/           convert.py (dispatch), detect.py, rds_export.R, crispr_to_viewer.py,
@@ -95,7 +110,8 @@ omics-canvas/            (on THOR: /nfs/baldar/quanyiz/vizhub)
     venv/                 Python 3.12 environment from requirements.txt (not in git)
   state/                 registry.json (datasets), jobs.json + jobs/<id>.log, converted/, great/ (GREAT's jobs and
                          settings), auth/ (sessions, access passwords) (not in git)
-  desktop/               Omics Canvas macOS app (spatial, single-cell, CRISPR; see desktop/OmicsCanvasDesktop/README.md)
+  desktop/               Omics Canvas macOS app (spatial, single-cell, CRISPR; see desktop/OmicsCanvasDesktop/README.md),
+                         Omics Workbench macOS app (desktop/OmicsWorkbenchDesktop/)
 ```
 
 ## Look and workspaces
@@ -143,7 +159,7 @@ folder; the page only offers what that viewer reads and points to the right one 
   annotation categories), as counts or log-normalized values. The file is CSV, TSV, gzip or a 10x Matrix Market zip,
   and is also served to scripts at `/hub/api/datasets/<id>/matrix`. The same panel draws one gene's (or module
   score's) violin or ridge plot per group; the densities come from `/hub/api/datasets/<id>/distribution`. See
-  [the tutorial](docs/TUTORIAL.md#9-tips) for the parameters.
+  [the tutorial](docs/TUTORIAL.md#10-tips) for the parameters.
   Tissue coordinates are always kept, whichever viewer converts the data: one conversion serves both (the single-cell
   viewer opens it on its embedding, computing a UMAP if there is none), and the same folder can be in your spatial
   and your single-cell lists. Selecting a source again reuses a finished conversion unless the source changed (or it

@@ -34,6 +34,7 @@ APP_DIR = Path(__file__).resolve().parent
 WEB_DIR = APP_DIR / "web"
 STATIC = {
     "login.mjs": "text/javascript; charset=utf-8", "admin.mjs": "text/javascript; charset=utf-8",
+    "admin-servers.mjs": "text/javascript; charset=utf-8",
     "auth.css": "text/css; charset=utf-8", "base.css": "text/css; charset=utf-8", "favicon.svg": "image/svg+xml",
 }
 NONCE_SECONDS = 300

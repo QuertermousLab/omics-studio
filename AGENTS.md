@@ -1,4 +1,8 @@
-# Omics Canvas — guide for agents and new sessions
+# Omics Studio — guide for agents and new sessions
+
+The project is **Omics Studio** (named Omics Canvas until 2026-11-13): 1. Genome Canvas (+ GREAT), 2. Omics Canvas (the
+hub's viewers, unchanged), 3. Omics Workbench (`workbench/`, analysis; its own guide [workbench/AGENTS.md](workbench/AGENTS.md)).
+Internal names stay as they were (`vizhub-*` units, `vizhubctl`, the `omics_canvas_session` cookie, the GitHub repository).
 
 Read this before changing anything. User documentation: [README.md](README.md). Genome Canvas has its
 own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [great/AGENTS.md](great/AGENTS.md)) — follow it for anything in
@@ -19,16 +23,24 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
   `hub/converters/` turn source files into the ATHENA viewer format (`convert.py` dispatches;
   `rds_export.R` reads R objects; `atac_to_viewer.py` builds accessibility tracks).
   `hub/web/` is the page source (TypeScript, esbuild): `./vizhubctl build` → `hub/static/`.
+- `workbench/` (standard library, `workbench/server.py` on 127.0.0.1:8896, `vizhub-workbench.service`): Omics Workbench at
+  `/workbench/` — downloads, bulk and Cell Ranger / Seurat jobs run detached on the chosen lab server in the person's
+  account, and the servers' load (admin page Servers tab). See [workbench/AGENTS.md](workbench/AGENTS.md).
+- Gateway: THOR's `apache2` package was removed on 2026-11-12 (with Globus); `VIZHUB_GATEWAY=auto` then runs
+  `gateway/gateway.py` (Python, the same routes as `apache.conf.in`, keep both in step). It must keep adding
+  X-Forwarded-For: the backends treat requests from 127.0.0.1 without it as their own internal calls.
 - `auth/` (standard library, `auth/server.py` on 127.0.0.1:8895, `vizhub-auth.service`): sign-in (`/auth/`) and the admin
   page (`/admin/`); every backend checks the session cookie with `auth/sessions.py` while `VIZHUB_SIGN_IN=on`. See
   [auth/AGENTS.md](auth/AGENTS.md): never turn it off or open a route without the user's word.
 - `great/` (standard library, `great/server.py` on 127.0.0.1:8894, `vizhub-great.service`): GREAT region set enrichment at
   `/great/`; see [great/AGENTS.md](great/AGENTS.md). Its workspaces and server files are Genome Canvas's.
 - The home page groups the tools (`hub/web/pages/hub.html`, `.tool-group`): *Genome and regions* (Genome Canvas,
-  GREAT) and *Single-cell, spatial and CRISPR screens*; a new tool joins a group or gets its own. Service cards
+  GREAT), *Omics Canvas: single-cell, spatial and CRISPR screens* and, below them, *Omics Workbench*; a new tool joins a group or gets its own. Service cards
   (Genome Canvas, GREAT) show online / offline from `hub/config.json` `services` (written by `./vizhubctl configure`).
+- `desktop/OmicsWorkbenchDesktop/`: the Omics Workbench app (same build as Omics Canvas's; notifications when jobs end,
+  Dock badge of running jobs; it was written without a Mac: the first macOS CI build is its first compile).
 - `desktop/OmicsCanvasDesktop/`: Objective-C AppKit + WKWebView app (only compiles on macOS; CI builds it).
-  `desktop/Shared/OCConnection.{h,m}` (compiled into both Mac apps): server, port and optional SSH port forwarding
+  `desktop/Shared/OCConnection.{h,m}` (compiled into the Omics Canvas and Omics Workbench apps): server, port and optional SSH port forwarding
   (password in the Keychain, handed to ssh by the app itself as `SSH_ASKPASS`); `macos-connection.yml` tests it
   against the runner's own SSH server.
 
@@ -78,14 +90,14 @@ with public 10x data (`gateway/dev_gateway.py` stands in for Apache) and uploads
 
 ## Releases
 
-A `v*` tag builds both Mac apps for Apple Silicon only (arm64; Intel builds were dropped at the user's request on
-2026-11-05) (`.github/workflows/release-macos.yml`) and publishes `GenomeCanvasDesktop-macOS-arm64.zip` and
-`OmicsCanvasDesktop-macOS-arm64.zip` (fixed names: README download links use `releases/latest/download/`). The release
+A `v*` tag builds the three Mac apps for Apple Silicon only (arm64; Intel builds were dropped at the user's request on
+2026-11-05) (`.github/workflows/release-macos.yml`) and publishes `GenomeCanvasDesktop-macOS-arm64.zip`,
+`OmicsCanvasDesktop-macOS-arm64.zip` and `OmicsWorkbenchDesktop-macOS-arm64.zip` (fixed names: README download links use `releases/latest/download/`). The release
 page shows `RELEASE_NOTES.md`, which holds only the first-launch `xattr` note (the user wants it short); what changed
-is in each app's own notes (`genome-canvas/macos/GenomeCanvasDesktop/RELEASE_NOTES.md`, `desktop/OmicsCanvasDesktop/RELEASE_NOTES.md`). Before tagging: bump `CFBundleShortVersionString` /
-`CFBundleVersion` in both `Resources/Info.plist` files (Genome Canvas's version is also asserted in
-`genome-canvas/tests/test_macos_desktop.py`), and update both apps' `RELEASE_NOTES.md`. Push a `mac-ui-*` branch to get window
-screenshots of both apps (`macos-preview.yml`) before releasing interface changes; it also starts Genome Canvas
+is in each app's own notes (`genome-canvas/macos/GenomeCanvasDesktop/RELEASE_NOTES.md`, `desktop/OmicsCanvasDesktop/RELEASE_NOTES.md`, `desktop/OmicsWorkbenchDesktop/RELEASE_NOTES.md`). Before tagging: bump `CFBundleShortVersionString` /
+`CFBundleVersion` in the apps' `Resources/Info.plist` files (Genome Canvas's version is also asserted in
+`genome-canvas/tests/test_macos_desktop.py`), and update the apps' `RELEASE_NOTES.md`. Push a `mac-ui-*` branch to get window
+screenshots of the apps (`macos-preview.yml`) before releasing interface changes; it also starts Genome Canvas
 from a `genomecanvas://` link (`link/` screenshots). The apps only compile on macOS: push the branch before tagging
 any change to `main.m`. Note `NSURL.path` drops a trailing slash (match `NSURLComponents.path`), and a link that
 launches an app arrives in `application:openURLs:` before `applicationDidFinishLaunching:`.

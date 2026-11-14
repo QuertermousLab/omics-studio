@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin · Omics Canvas</title>
+  <title>Admin · Omics Studio</title>
   <script>
     (function () {
       var saved = null;
@@ -19,7 +19,7 @@
 </head>
 <body class="admin-page">
   <header class="ad-top">
-    <a class="hub-home-button" href="/" title="Back to the Omics Canvas home page"><img src="/auth/favicon.svg" alt="" width="16" height="16">Omics Canvas</a>
+    <a class="hub-home-button" href="/" title="Back to the Omics Studio home page"><img src="/auth/favicon.svg" alt="" width="16" height="16">Omics Studio</a>
     <h1>Admin</h1>
     <div class="ad-me"><span id="ad-me"></span><a class="quiet-button" href="/auth/logout">Sign out</a></div>
   </header>
@@ -27,6 +27,8 @@
     <nav class="ad-tabs" role="tablist">
       <button type="button" data-tab="signin" aria-selected="true">Sign-in</button>
       <button type="button" data-tab="great" aria-selected="false">GREAT</button>
+      <button type="button" data-tab="servers" aria-selected="false">Servers</button>
+      <button type="button" data-tab="workbench" aria-selected="false">Workbench</button>
     </nav>
 
     <section data-panel="signin">
@@ -85,6 +87,47 @@
       <div class="ad-card">
         <h2>Now</h2>
         <div id="gr-status"></div>
+      </div>
+    </section>
+    <section data-panel="servers" hidden>
+      <div class="ad-card">
+        <h2>Lab servers</h2>
+        <p>Load of every server, sampled every 20 seconds by Omics Workbench over SSH with the key of <b id="sv-service">the service account</b>
+          (a server whose key is not installed shows a form to install it with the account's password once). Everyone signed in sees a summary (CPU, memory,
+          load, free cores) to choose where to run; accounts, processes and disks are shown here only.</p>
+      </div>
+      <div id="sv-cards" class="sv-cards"><p class="ad-muted">Loading…</p></div>
+      <div class="ad-card">
+        <h2>Server list</h2>
+        <p>The account is the one monitored and used for administrators' jobs without a password (with the key); others run jobs in their own accounts.</p>
+        <div class="ad-table-wrap" id="sv-list-wrap"></div>
+        <div class="ad-actions"><button class="secondary-button small" type="button" id="sv-add">Add a server</button>
+          <button class="primary-button small" type="button" id="sv-save">Save</button><span class="ad-message" id="sv-message"></span></div>
+      </div>
+    </section>
+
+    <section data-panel="workbench" hidden>
+      <div class="ad-card">
+        <h2>Omics Workbench</h2>
+        <p>Settings of the analysis pages (<a href="/workbench/">/workbench/</a>): where the lab's pipeline scripts are, environment lines for every job, how job e-mails are sent, and s3 buckets.</p>
+        <form id="wb-settings" class="sv-form">
+          <label>Pipelines-Wrappers folder <input type="text" name="wrappers" size="60"></label>
+          <label>Environment lines run before every job (after the account's ~/.bashrc) <textarea name="setup" rows="3" cols="60" placeholder="e.g. export PATH=/usr/local/bin:$PATH"></textarea></label>
+          <fieldset><legend>E-mail when a job ends</legend>
+            <label>Send with <select name="method"><option value="sendmail">sendmail on THOR</option><option value="smtp">an SMTP server</option><option value="ssh">sendmail on another server</option></select></label>
+            <label>From <input type="text" name="from" placeholder="Omics Workbench &lt;account@THOR-cvmed.stanford.edu&gt;" size="40"></label>
+            <label data-mail="smtp">SMTP host <input type="text" name="host" placeholder="smtp.example.org"></label>
+            <label data-mail="smtp">Port <input type="number" name="port" value="25" style="width:80px"></label>
+            <label data-mail="smtp" class="sv-inline"><input type="checkbox" name="starttls"> STARTTLS</label>
+            <label data-mail="smtp">SMTP account <input type="text" name="user" autocomplete="off"></label>
+            <label data-mail="smtp">SMTP password <input type="password" name="password" autocomplete="new-password"></label>
+            <label data-mail="ssh">Server (its id in the list) <input type="text" name="server" placeholder="loki"></label>
+            <p class="ad-muted" data-mail="sendmail">THOR's mail service (postfix) is not running at the moment: start it (sudo systemctl enable --now postfix), or send through an SMTP server or another server.</p>
+          </fieldset>
+          <label>s3 buckets: one per line, <code>bucket profile region</code> (profiles of ~/.aws/credentials) <textarea name="buckets" rows="3" cols="60" placeholder="my-delivery-bucket default us-east-2"></textarea></label>
+          <div class="ad-actions"><button class="primary-button small" type="submit">Save</button><button class="secondary-button small" type="button" id="wb-mail-test">Send a test e-mail</button>
+            <span class="ad-message" id="wb-message"></span></div>
+        </form>
       </div>
     </section>
   </main>

@@ -1,8 +1,9 @@
 name: macOS UI preview
 
-# Builds both native apps on macOS and captures their windows in the light and dark themes, so interface
-# changes can be reviewed without a local Mac. Genome Canvas uses its bundled local backend; Omics Canvas
-# cannot reach the lab server from GitHub and shows its "server unavailable" state.
+# Builds the native apps on macOS and captures their windows in the light and dark themes, so interface
+# changes can be reviewed without a local Mac. Genome Canvas uses its bundled local backend; Omics Canvas and
+# Omics Workbench cannot reach the lab server from GitHub and show their "server unavailable" state (with example
+# datasets / jobs in the sidebar).
 on:
   workflow_dispatch:
   push:
@@ -29,6 +30,11 @@ jobs:
             bundle: Omics Canvas.app
             binary: OmicsCanvasDesktop
             snapshot: OMICS_CANVAS_SNAPSHOT_DIR
+          - app: omics-workbench
+            dir: desktop/OmicsWorkbenchDesktop
+            bundle: Omics Workbench.app
+            binary: OmicsWorkbenchDesktop
+            snapshot: OMICS_WORKBENCH_SNAPSHOT_DIR
     steps:
       - uses: actions/checkout@v6
       - name: Build native app
@@ -40,8 +46,9 @@ jobs:
         run: |
           shots="${RUNNER_TEMP}/shots"
           mkdir -p "${shots}"
-          # Omics Canvas: example datasets in the sidebar (CI cannot reach the lab server)
+          # Omics Canvas: example datasets in the sidebar; Omics Workbench: example jobs (CI cannot reach the lab server)
           env "${{ matrix.snapshot }}=${shots}" OMICS_CANVAS_SNAPSHOT_DATASETS="${PWD}/preview/sidebar-datasets.json" \
+            OMICS_WORKBENCH_SNAPSHOT_JOBS="${PWD}/preview/sidebar-jobs.json" \
             "dist/preview/${{ matrix.bundle }}/Contents/MacOS/${{ matrix.binary }}" > "${shots}/app.log" 2>&1 &
           for attempt in $(seq 1 60); do
             [[ -f "${shots}/window-dark.png" ]] && break
@@ -51,6 +58,18 @@ jobs:
           ls -la "${shots}"
           test -f "${shots}/window-light.png"
           test -f "${shots}/window-dark.png"
+      - name: Check the Omics Workbench job notifications
+        if: matrix.app == 'omics-workbench'
+        shell: bash
+        run: |
+          # preview/sidebar-jobs.json: two jobs end between its "baseline" and "jobs" lists (one done, one failed);
+          # the app logs the notifications it would show
+          log="${RUNNER_TEMP}/shots/app.log"
+          grep "notification:" "${log}"
+          test "$(grep -c 'notification:' "${log}")" -eq 2
+          grep -q "notification: Finished: RNA-seq · example time course" "${log}"
+          grep -q "notification: Failed: Cell Ranger · example PBMC" "${log}"
+          test -f "${{ matrix.dir }}/dist/preview/${{ matrix.bundle }}/Contents/Resources/OmicsWorkbench.icns"
       - name: Capture Genome Canvas connected to a server
         if: matrix.app == 'genome-canvas'
         working-directory: ${{ matrix.dir }}

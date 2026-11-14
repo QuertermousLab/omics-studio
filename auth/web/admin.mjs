@@ -1,3 +1,5 @@
+import { initServers } from "./admin-servers.mjs";
+
 // The admin page: sign-in (access passwords, sessions, settings, log; /admin/api/) and GREAT (its settings and
 // stored analyses; GREAT's own admin API under /great/api/, which checks the same session).
 
@@ -185,10 +187,15 @@ async function cleanup(action) {
 
 // ---------------------------------------------------------------- start
 
+// Servers and Workbench (admin-servers.mjs): Omics Workbench's API
+const tabLoaders = {};
+initServers({ onSelect: (name, load) => { tabLoaders[name] = load; } });
+
 function selectTab(name) {
   for (const tab of $$("[data-tab]")) tab.setAttribute("aria-selected", String(tab.dataset.tab === name));
   for (const panel of $$("[data-panel]")) panel.hidden = panel.dataset.panel !== name;
   if (name === "great") void loadGreat();
+  tabLoaders[name]?.();
   history.replaceState(null, "", `#${name}`);
 }
 
@@ -224,4 +231,4 @@ for (const button of $$("[data-cleanup]")) button.addEventListener("click", () =
 for (const tab of $$("[data-tab]")) tab.addEventListener("click", () => selectTab(tab.dataset.tab));
 setInterval(() => { if (!$('[data-panel="great"]').hidden) void loadGreatStatus().catch(() => {}); }, 5000);
 await loadSignin().catch((error) => { document.querySelector(".ad-main").insertAdjacentHTML("afterbegin", `<p class="ad-danger">${esc(error.message)}</p>`); });
-selectTab(location.hash === "#great" ? "great" : "signin");
+selectTab(["#great", "#servers", "#workbench"].includes(location.hash) ? location.hash.slice(1) : "signin");

@@ -108,7 +108,7 @@ let sharedOpener: (() => void) | null = null;
 /** The page's "Shared datasets" dialog (shared.ts bindShared), for the Mac app's sidebar. */
 export const setSharedOpener = (open: () => void) => { sharedOpener = open; };
 
-const PAGE_TITLE: Record<string, string> = { hub: '', spatial: 'Spatial viewer', 'single-cell': 'Single-cell viewer', crispr: 'CRISPR explorer' };
+const PAGE_TITLE: Record<string, string> = { hub: '', spatial: 'Spatial viewer', 'single-cell': 'Single-cell viewer', crispr: 'CRISPR explorer', workbench: 'Omics Workbench' };
 
 /** Top bar: page title, theme toggle, workspace chip; the desktop app bridge. */
 export function initChrome(navId: string) {
@@ -128,7 +128,8 @@ export function initChrome(navId: string) {
     // the viewer's name leads back to its main page (your datasets)
     if (PAGE_TITLE[navId]) {
       title.setAttribute('href', `/${navId}/`);
-      title.title = `Your ${navId === 'crispr' ? 'CRISPR screens' : `${PAGE_TITLE[navId].replace(' viewer', '').toLowerCase()} datasets`}`;
+      title.title = navId === 'workbench' ? 'Omics Workbench: overview'
+        : `Your ${navId === 'crispr' ? 'CRISPR screens' : `${PAGE_TITLE[navId].replace(' viewer', '').toLowerCase()} datasets`}`;
     } else title.removeAttribute('href');
   }
   // Omics Canvas desktop app (desktop/): the native window calls these and listens to postToDesktop

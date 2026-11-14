@@ -1,0 +1,17 @@
+{
+ "user": "example",
+ "admin": true,
+ "currentPath": "/workbench/jobs/a1b2c3d4e5f6/",
+ "baseline": [
+  {"id": "a1b2c3d4e5f6", "title": "RNA-seq · example time course", "kind": "bulk", "state": "running", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762990000, "finished": null, "step": "STAR alignment"},
+  {"id": "b2c3d4e5f6a1", "title": "Cell Ranger · example PBMC", "kind": "singlecell", "state": "running", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762980000, "finished": null, "step": "cellranger count"},
+  {"id": "c3d4e5f6a1b2", "title": "FASTQ · example accession", "kind": "download", "state": "done", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762900000, "finished": 1762903600, "step": ""}
+ ],
+ "jobs": [
+  {"id": "d4e5f6a1b2c3", "title": "ATAC-seq · example sections", "kind": "bulk", "state": "running", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762999000, "finished": null, "step": "Peak calling"},
+  {"id": "a1b2c3d4e5f6", "title": "RNA-seq · example time course", "kind": "bulk", "state": "done", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762990000, "finished": 1762999900, "step": "MultiQC report"},
+  {"id": "b2c3d4e5f6a1", "title": "Cell Ranger · example PBMC", "kind": "singlecell", "state": "failed", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762980000, "finished": 1762999800, "step": "cellranger count"},
+  {"id": "e5f6a1b2c3d4", "title": "CUT&RUN · example marks", "kind": "bulk", "state": "queued", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762999500, "finished": null, "step": ""},
+  {"id": "c3d4e5f6a1b2", "title": "FASTQ · example accession", "kind": "download", "state": "done", "server": "thor", "server_name": "THOR", "owner": "example", "created": 1762900000, "finished": 1762903600, "step": ""}
+ ]
+}

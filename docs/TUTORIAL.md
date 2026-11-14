@@ -1,7 +1,8 @@
-# Omics Canvas tutorial
+# Omics Studio tutorial
 
-Omics Canvas puts the lab's genomics data on one server page: **Genome Canvas** (genome browser, with **GREAT**
-region set enrichment), the **spatial viewer**, the **single-cell viewer** and the **CRISPR explorer**. Each works in the browser and in a Mac app. This guide
+Omics Studio puts the lab's genomics data on one server page: **Genome Canvas** (genome browser, with **GREAT**
+region set enrichment), **Omics Canvas** — the **spatial viewer**, the **single-cell viewer** and the **CRISPR explorer** —
+and **Omics Workbench** for downloads and pipelines ([section 9](#9-omics-workbench-downloads-and-pipelines)). Each works in the browser and in a Mac app. This guide
 shows every module with screenshots of public data (10x Genomics Visium human heart and PBMC 3k, CELLxGENE human arterial
 atlas and mouse SMC time course, IGVF HCASMC CRISPR screens, UCSC hg38 annotation tracks, ENCODE MYB ChIP-seq peaks).
 
@@ -13,7 +14,8 @@ atlas and mouse SMC time course, IGVF HCASMC CRISPR screens, UCSC hg38 annotatio
 - [6. Shared data](#6-shared-data)
 - [7. Adding and managing data](#7-adding-and-managing-data)
 - [8. Mac apps](#8-mac-apps)
-- [9. Tips](#9-tips)
+- [9. Omics Workbench: downloads and pipelines](#9-omics-workbench-downloads-and-pipelines)
+- [10. Tips](#10-tips)
 
 ## 1. Getting started
 
@@ -197,7 +199,7 @@ coordinates. Without a dataset in the address the page lists your datasets ([sec
   - **Export matrix** writes CSV, TSV or gzip-compressed CSV, with cells or genes as rows, or a 10x-style Matrix Market
     folder (zip of `matrix.mtx`, `features.tsv`, `barcodes.tsv`, `metadata.tsv`) that Seurat's `ReadMtx` and scanpy's
     `read_10x_mtx` open.
-  - **Copy API call** copies the same request as a `curl` command (see [Tips](#9-tips)).
+  - **Copy API call** copies the same request as a `curl` command (see [Tips](#10-tips)).
   - **Plot** draws one gene, one module score (saved, or the one just computed) or one numeric annotation in the
     chosen cells, as a **Violin** plot (as Seurat's `VlnPlot`) or a **Ridge** plot (as `RidgePlot`), grouped by an
     annotation, with the groups' colors.
@@ -421,7 +423,33 @@ Omics Canvas's sidebar, **Connect to Server…** / the **Server** button in Geno
    it while it runs and reconnects after sleep or a network change. The sidebar shows the connection, e.g.
    `171.65.68.140:8892 · SSH yourname@171.65.68.140`; **Use Default** goes back to THOR without a tunnel.
 
-## 9. Tips
+## 9. Omics Workbench: downloads and pipelines
+
+**Omics Workbench** (home page, bottom group, or `/workbench/`) runs work on the lab's servers in your account. Every
+page ends with **Where to run**: cards with each server's current CPU, memory and free cores (THOR is the default),
+your account and password on that server (sent encrypted, kept only while the job runs), optional environment lines
+(`conda activate …`) and an e-mail address for when the job ends. **Check paths on the server** verifies from that server
+that the inputs, references, indexes and programs exist and that the output folder can be written; **Show script** shows
+exactly what will run. **Start** opens the job's page: its current step, the live log and Stop. Jobs keep running when you
+close the page, the browser or the app; **Jobs** lists them.
+
+- **Download data**: paste a link, a whole delivery e-mail (Novogene, MedGenome… — host, port, account and password are
+  read from it), an `s3://` address, or a GEO / SRA accession; for GEO choose the raw FASTQs (per run) or processed
+  files. Choose the destination and how much of the source's folders to keep, and **Show final paths** before starting.
+  The download tries SFTP, lftp, scp and HTTPS in turn, resumes, retries and checks MD5 sums.
+- **Bulk sequencing**: choose RNA-seq, ChIP-seq, CUT&RUN, CUT&Tag or ATAC-seq and the FASTQ folder, then **Find samples**:
+  read pairs and lanes are joined into samples with names you can edit. RNA-seq proposes groups (the name without its
+  replicate number) and lists every pair of groups for DESeq2 (untick or swap any). ChIP-seq marks input / IgG samples and
+  gives each sample the control that matches its name (change it, or none); MACS2 calls narrow or broad peaks with your
+  cutoffs. ATAC-seq takes your MACS2 options.
+- **Single cell**: Cell Ranger GEX, ATAC or multiome (GEX and ATAC libraries paired by name), optionally `aggr`, then
+  Seurat. With **Let me review the QC thresholds** the first job proposes per-sample thresholds (median ± 3 MADs of the
+  log counts, with floors and caps; TSS enrichment, nucleosome signal and FRiP for ATAC) with a figure per sample; edit
+  them on the job's page and **Continue** to filter, cluster, transfer labels from a reference (its label column is
+  detected or chosen) and save RDS and h5ad / h5mu. **Seurat only** analyses Cell Ranger outputs that already exist.
+- Administrators see every server's load in **Admin → Servers** and set the e-mail method in **Admin → Workbench**.
+
+## 10. Tips
 
 - **Share** any view by copying the address: dataset, sample (`?s=`), gene (`?gene=`) and CRISPR selection are in it.
 - **Figures**: every PNG export has a transparent background; set the plot background under *Display* to preview it.

@@ -1,7 +1,8 @@
 name: Release macOS apps
 
-# A v* tag builds and releases both Mac apps for Apple Silicon (arm64; no Intel builds):
-#   Genome Canvas (genome-canvas/macos/GenomeCanvasDesktop) and Omics Canvas (desktop/OmicsCanvasDesktop).
+# A v* tag builds and releases the Mac apps for Apple Silicon (arm64; no Intel builds): Genome Canvas
+#   (genome-canvas/macos/GenomeCanvasDesktop), Omics Canvas (desktop/OmicsCanvasDesktop) and Omics Workbench
+#   (desktop/OmicsWorkbenchDesktop).
 # The asset names stay fixed so .../releases/latest/download/<asset> links keep working.
 on:
   push:
@@ -28,7 +29,8 @@ jobs:
           versions="$(python3 -c 'import plistlib
           g = plistlib.load(open("genome-canvas/macos/GenomeCanvasDesktop/Resources/Info.plist", "rb"))["CFBundleShortVersionString"]
           o = plistlib.load(open("desktop/OmicsCanvasDesktop/Resources/Info.plist", "rb"))["CFBundleShortVersionString"]
-          print(f"Omics Canvas {o} · Genome Canvas {g}")')"
+          w = plistlib.load(open("desktop/OmicsWorkbenchDesktop/Resources/Info.plist", "rb"))["CFBundleShortVersionString"]
+          print(f"Omics Canvas {o} · Omics Workbench {w} · Genome Canvas {g}")')"
           # Release notes are versioned with the apps; update the file before tagging.
           gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1 || \
             gh release create "${tag}" \
@@ -58,6 +60,13 @@ jobs:
             asset: OmicsCanvasDesktop
             runner: macos-15
             architecture: arm64
+          - app: omics-workbench
+            dir: desktop/OmicsWorkbenchDesktop
+            bundle: Omics Workbench.app
+            binary: OmicsWorkbenchDesktop
+            asset: OmicsWorkbenchDesktop
+            runner: macos-15
+            architecture: arm64
     runs-on: ${{ matrix.runner }}
     env:
       GH_TOKEN: ${{ github.token }}
@@ -85,6 +94,9 @@ jobs:
             test -f "${app}/Contents/Resources/LocalBackend/vendor/fonts/manrope-latin-wght-normal.woff2"
           else
             test -f "${app}/Contents/Resources/Fonts/Manrope-Variable.ttf"
+          fi
+          if [[ "${{ matrix.app }}" == "omics-workbench" ]]; then
+            test -f "${app}/Contents/Resources/OmicsWorkbench.icns"
           fi
           codesign --verify --deep --strict "${app}"
           mv "dist/${{ matrix.architecture }}/${{ matrix.asset }}-macOS.zip" "${{ matrix.asset }}-macOS-${{ matrix.architecture }}.zip"
