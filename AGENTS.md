@@ -79,11 +79,14 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
   `python -m unittest discover hub/tests` (also run in CI).
 - Never delete or overwrite source data on `/nfs`; conversions write to `<source>.vizhub/` next to it.
 - Exported figures (PNG / SVG of the viewers, plots and Genome Canvas) are set in Arial (the user's rule).
-- Interface type (the user's choice, 2026-11-13): headings (`--heading-font`, "Studio Heading") in Anthropic Serif, body,
-  buttons and tables stay Manrope. The face is proprietary: it lives only in `state/fonts/heading-serif.ttf` on the server
-  (never commit it; the Mac apps do not bundle it), served by the hub build (`/hub/static/fonts/`) and the sign-in server
-  (`/auth/fonts/`); its `@font-face` covers weights 100-900 so headings are never drawn faux-bold, and pages fall back to
-  Fraunces where it is missing.
+- Interface type (the user's choice, 2026-11-13, on trial): Anthropic Serif ("Studio Heading") for headings
+  (`--heading-font`) and, since the same day, for body, buttons and tables too (`--font` puts it before Manrope). It has
+  one weight (Regular): its `@font-face` covers weights 100-900, so bold places are drawn at the same weight, never
+  faux-bold (the user's option 1; the browser-emboldened option 2 was rejected). If the user goes back, drop
+  "Studio Heading" from `--font` in `hub/web/src/theme.css`, `genome-canvas/styles.css`, `great/web/base.css`,
+  `auth/web/base.css` (and bump their `?v=`). The face is proprietary: it lives only in `state/fonts/heading-serif.ttf`
+  on the server (never commit it; the Mac apps do not bundle it), served by the hub build (`/hub/static/fonts/`) and the
+  sign-in server (`/auth/fonts/`); where it is missing, headings fall back to Fraunces and text to Manrope.
 - Icons: Omics Studio `hub/web/pages/studio.svg` (home page, the "Omics Studio" button, sign-in and admin), Omics Canvas
   `favicon.svg` (the viewers, its Mac app), Omics Workbench `workbench.svg` (its pages, its Mac app), Genome Canvas and GREAT
   their own.

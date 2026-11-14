@@ -102,8 +102,8 @@ jobs:
           ls -la "${shots}"
           grep "page theme:" "${shots}/app.log"
           # "page theme: <window> <path> <page data-theme> <bridge> <body background>"
-          grep -q "page theme: light /workbench/ light true" "${shots}/app.log"
-          grep -q "page theme: dark /workbench/ dark true" "${shots}/app.log"
+          grep -Eq "page theme: light /workbench/[^ ]* light true" "${shots}/app.log"
+          grep -Eq "page theme: dark /workbench/[^ ]* dark true" "${shots}/app.log"
       - name: Capture Genome Canvas connected to a server
         if: matrix.app == 'genome-canvas'
         working-directory: ${{ matrix.dir }}
