@@ -25,9 +25,9 @@ Canvas), in three parts:
   administrators see every server's load ([workbench/README.md](workbench/README.md)). Its Mac app:
   `desktop/OmicsWorkbenchDesktop/`.
 
-Downloads (Apple Silicon): [Genome Canvas](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/GenomeCanvasDesktop-macOS-arm64.zip) ·
-[Omics Canvas](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/OmicsCanvasDesktop-macOS-arm64.zip) ·
-[Omics Workbench](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/OmicsWorkbenchDesktop-macOS-arm64.zip).
+Downloads (Apple Silicon): [Genome Canvas](https://github.com/QuertermousLab/omics-studio/releases/latest/download/GenomeCanvasDesktop-macOS-arm64.zip) ·
+[Omics Canvas](https://github.com/QuertermousLab/omics-studio/releases/latest/download/OmicsCanvasDesktop-macOS-arm64.zip) ·
+[Omics Workbench](https://github.com/QuertermousLab/omics-studio/releases/latest/download/OmicsWorkbenchDesktop-macOS-arm64.zip).
 The apps are ad-hoc signed: after unzipping, run `xattr -dr com.apple.quarantine "/Applications/<App>.app"` once.
 
 **How to use it: [docs/TUTORIAL.md](docs/TUTORIAL.md)** — all four modules, shared data, data management and the Mac apps, with
@@ -91,7 +91,7 @@ Genome Canvas keeps its own `genome-canvas/genomecanvas.config.json` (data roots
 ## Layout
 
 ```
-omics-canvas/            (on THOR: /nfs/baldar/quanyiz/vizhub)
+omics-studio/            (on THOR: /nfs/baldar/quanyiz/vizhub)
   vizhubctl              status | start | stop | restart [hub|canvas|great|auth|workbench|gateway] | logs | access | install | build
   gateway/apache.conf.in the Apache gateway template (apache.conf is generated; logs in gateway/logs/)
   gateway/gateway.py     the same gateway in Python (used when Apache is not installed)

@@ -2,7 +2,7 @@
 
 The project is **Omics Studio** (named Omics Canvas until 2026-11-13): 1. Genome Canvas (+ GREAT), 2. Omics Canvas (the
 hub's viewers, unchanged), 3. Omics Workbench (`workbench/`, analysis; its own guide [workbench/AGENTS.md](workbench/AGENTS.md)).
-Internal names stay as they were (`vizhub-*` units, `vizhubctl`, the `omics_canvas_session` cookie, the GitHub repository).
+Internal names stay as they were (`vizhub-*` units, `vizhubctl`, the `omics_canvas_session` cookie, the PAM service `omics-canvas`); the GitHub repository is `omics-studio` (renamed 2026-11-13; GitHub redirects the old address).
 
 Read this before changing anything. User documentation: [README.md](README.md). Genome Canvas has its
 own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [great/AGENTS.md](great/AGENTS.md)) — follow it for anything in
@@ -10,7 +10,7 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
 
 ## Layout and where it runs
 
-- Repository https://github.com/QuertermousLab/omics-canvas (public; formerly `genome-canvas`), branch `main`.
+- Repository https://github.com/QuertermousLab/omics-studio (public; formerly `omics-canvas`, before that `genome-canvas`), branch `main`.
 - THOR (`quanyiz@171.65.68.140`): the checkout `/nfs/baldar/quanyiz/vizhub` **is the live deployment** of
   everything on port 8892 (gateway `gateway/apache.conf`, systemd user units, managed with `./vizhubctl`). Server
   settings live in `deploy/site.env` (local; defaults `deploy/site.env.example` = THOR): edit the templates
@@ -26,7 +26,8 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
 - `workbench/` (standard library, `workbench/server.py` on 127.0.0.1:8896, `vizhub-workbench.service`): Omics Workbench at
   `/workbench/` — downloads, bulk and Cell Ranger / Seurat jobs run detached on the chosen lab server in the person's
   account, and the servers' load (admin page Servers tab). See [workbench/AGENTS.md](workbench/AGENTS.md).
-- Gateway: THOR's `apache2` package was removed on 2026-11-12 (with Globus); `VIZHUB_GATEWAY=auto` then runs
+- Gateway: THOR's administrator purged `apache2` on 2026-11-12 (`apt purge apache2 …`, account eric); ask them before
+  reinstalling it. `VIZHUB_GATEWAY=auto` then runs
   `gateway/gateway.py` (Python, the same routes as `apache.conf.in`, keep both in step). It must keep adding
   X-Forwarded-For: the backends treat requests from 127.0.0.1 without it as their own internal calls.
 - `auth/` (standard library, `auth/server.py` on 127.0.0.1:8895, `vizhub-auth.service`): sign-in (`/auth/`) and the admin

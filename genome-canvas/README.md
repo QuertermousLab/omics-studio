@@ -51,8 +51,8 @@ Requirements: Python 3.8 or newer. IGV.js is vendored, so the application does
 not need npm or internet access at runtime.
 
 ```bash
-git clone https://github.com/QuertermousLab/omics-canvas.git
-cd omics-canvas/genome-canvas
+git clone https://github.com/QuertermousLab/omics-studio.git
+cd omics-studio/genome-canvas
 cd genome-canvas
 cp genomecanvas.config.example.json genomecanvas.config.json
 ./start.sh --host 0.0.0.0 --port 8000
@@ -97,7 +97,7 @@ The desktop app has two data-source modes:
 
 Download a prebuilt app for your Mac:
 
-- [Apple Silicon (arm64)](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/GenomeCanvasDesktop-macOS-arm64.zip)
+- [Apple Silicon (arm64)](https://github.com/QuertermousLab/omics-studio/releases/latest/download/GenomeCanvasDesktop-macOS-arm64.zip)
 
 The release archives are ad-hoc signed rather than Apple-notarized. If
 Gatekeeper requests confirmation, Control-click the app and choose **Open**.

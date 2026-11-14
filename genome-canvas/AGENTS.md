@@ -29,7 +29,7 @@ the web app: plain HTML, CSS and ES modules.
 
 ## Where it runs
 
-- **Repository:** https://github.com/QuertermousLab/omics-canvas (renamed from `genome-canvas`
+- **Repository:** https://github.com/QuertermousLab/omics-studio (renamed from `genome-canvas`
   on 2026-10-12; GitHub redirects the old URL), branch `main`. Genome Canvas is the `genome-canvas/`
   folder; the repository root also holds the Omics Canvas hub and its Mac app (see `../AGENTS.md`).
   CI and release workflows are in the root `.github/workflows/`.

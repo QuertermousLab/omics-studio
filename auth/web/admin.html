@@ -122,7 +122,7 @@
             <label data-mail="smtp">SMTP account <input type="text" name="user" autocomplete="off"></label>
             <label data-mail="smtp">SMTP password <input type="password" name="password" autocomplete="new-password"></label>
             <label data-mail="ssh">Server (its id in the list) <input type="text" name="server" placeholder="loki"></label>
-            <p class="ad-muted" data-mail="sendmail">THOR's mail service (postfix) is not running at the moment: start it (sudo systemctl enable --now postfix), or send through an SMTP server or another server.</p>
+            <p class="ad-muted" data-mail="sendmail">THOR's postfix delivers the mail itself. Use “Send a test e-mail” (and check the spam folder); if it does not arrive, send through an SMTP server or another server.</p>
           </fieldset>
           <label>s3 buckets: one per line, <code>bucket profile region</code> (profiles of ~/.aws/credentials) <textarea name="buckets" rows="3" cols="60" placeholder="my-delivery-bucket default us-east-2"></textarea></label>
           <div class="ad-actions"><button class="primary-button small" type="submit">Save</button><button class="secondary-button small" type="button" id="wb-mail-test">Send a test e-mail</button>

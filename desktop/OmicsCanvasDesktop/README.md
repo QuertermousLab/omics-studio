@@ -18,8 +18,8 @@ links to it (and to the hub home page or JupyterLab) open in the web browser.
 
 ## Download
 
-From the [latest release](https://github.com/QuertermousLab/omics-canvas/releases/latest):
-[Apple Silicon](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/OmicsCanvasDesktop-macOS-arm64.zip).
+From the [latest release](https://github.com/QuertermousLab/omics-studio/releases/latest):
+[Apple Silicon](https://github.com/QuertermousLab/omics-studio/releases/latest/download/OmicsCanvasDesktop-macOS-arm64.zip).
 Unzip, move **Omics Canvas.app** to Applications and, because the app is ad-hoc signed (not notarized), run once:
 
 ```bash

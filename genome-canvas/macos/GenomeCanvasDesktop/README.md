@@ -24,7 +24,7 @@ Canvas server. Local mode browses files on the Mac directly and does not need
 
 Prebuilt downloads:
 
-- [Apple Silicon (arm64)](https://github.com/QuertermousLab/omics-canvas/releases/latest/download/GenomeCanvasDesktop-macOS-arm64.zip)
+- [Apple Silicon (arm64)](https://github.com/QuertermousLab/omics-studio/releases/latest/download/GenomeCanvasDesktop-macOS-arm64.zip)
 
 The release archives are ad-hoc signed rather than Apple-notarized. If
 Gatekeeper requests confirmation, Control-click the app and choose **Open**.

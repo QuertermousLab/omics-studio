@@ -23,6 +23,7 @@ User documentation: [README.md](README.md). The repository rules in [../AGENTS.m
   `wrappers`, default `/nfs/baldar/quanyiz/app/Pipelines-Wrappers`, its own repository). `RNAseq.sh -c` (comparisons)
   and `ATACseq.sh -M` (MACS2 options) were added there for these pages; the sample scanning of ChIP-seq / ATAC-seq is
   done here (`fastq.py`), and ChIP peak calling (MACS2 with controls) is in `pipelines.bulk_script`.
-- Mail: THOR's postfix is not running (2026-11-13); the admin chooses sendmail, SMTP or sendmail on another server.
+- Mail: THOR's postfix runs (enabled 2026-11-13; it delivers directly, no relay host); Admin → Workbench can switch to
+  SMTP or sendmail on another server.
 - To test without signing in: run a second instance with sign-in off on another port and its own state
   (`env -u OMICS_CANVAS_AUTH python3 workbench/server.py --port 18896 --state <scratch>`); never create sign-in sessions.
