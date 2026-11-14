@@ -49,6 +49,14 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
 
 ## Rules
 
+- **Permissions of the checkout** (since 2026-11-13): owned by `quanyiz:quanyiz` and writable by nobody else (`go-w`),
+  `state/auth/` (sessions, access passwords) 700 with its files 600, `state/workbench/settings.json` 600. The rest of
+  `/nfs` is 777 by the lab's choice, and this checkout was too: anyone could have changed the server code or the
+  sign-in database. Keep it locked: never `chmod 777` here. On this Synology (NFS 4.1) a new folder outside a locked
+  one is created 777 and files whose group is `users` refuse `chmod` / `chgrp` even from their owner; `sudo chown -R -h
+  quanyiz:quanyiz <path>` (the user runs sudo) fixes them, then `chmod -R go-w`. Check with
+  `find . -perm /022 ! -type l | wc -l` (0).
+
 - **Users' conversions run inside `vizhub-hub`.** Before `./vizhubctl restart hub`, check
   `GET /hub/api/jobs` (with the user's `X-Vizhub-Workspace`) — a restart interrupts them; they resume from
   their checkpoints, but the step in progress is redone. Web-only changes need no restart (`./vizhubctl build`).
