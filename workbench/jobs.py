@@ -36,6 +36,10 @@ ACTIVE = {"starting", "running"}
 JOB_ID = re.compile(r"[a-z0-9]{12}")
 LOG_CHUNK = 256 * 1024
 
+# job folders of downloads run in this service's account into shared folders: in this account's home (not writable by
+# others, unlike /nfs), so nobody can swap their log, pid or scripts
+PRIVATE_RUNS = Path(os.environ.get("OMICS_WORKBENCH_PRIVATE_RUNS") or os.path.expanduser("~/.local/state/omics-workbench/runs"))
+
 WRAPPER = r"""#!/bin/bash
 # Omics Workbench job @ID@ (@TITLE@). Started by the web server; everything it prints is in ./log.
 cd "$(dirname "$0")" || exit 1
@@ -127,18 +131,25 @@ class Jobs:
         return remote.Target(server, job["account"] or None, password or self.passwords.get(job["id"]))
 
     def create(self, identity, kind, title, server_id, account, password, folder, body, extra_files=None,
-               secrets_env=None, setup="", email="", params=None, outputs=None, parent=None):
-        """Record a job and start it in the background; returns the record."""
+               secrets_env=None, setup="", email="", params=None, outputs=None, parent=None, shared=False):
+        """Record a job and start it in the background; returns the record. shared: a download into a shared folder,
+        run in this service's account for someone who gave none; its job folder is then PRIVATE_RUNS/<id> (the shared
+        folders are writable by everyone, so a job folder there could be swapped for links to this account's files)."""
         server = self.servers.get(server_id)
         jid = secrets.token_hex(6)
         folder = folder.rstrip("/")
-        job_dir = "{}/.omics-workbench/{}".format(folder, jid)
+        if shared:
+            PRIVATE_RUNS.mkdir(parents=True, exist_ok=True)
+            os.chmod(str(PRIVATE_RUNS), 0o700)
+            job_dir = str(PRIVATE_RUNS / jid)
+        else:
+            job_dir = "{}/.omics-workbench/{}".format(folder, jid)
         job = {"id": jid, "kind": kind, "title": title[:200], "owner": identity["user"], "created": now(),
                "server": server["id"], "server_name": server["name"], "account": (account or "").strip(),
                "auth": "password" if password else "key", "folder": folder, "job_dir": job_dir,
                "state": "starting", "step": "Starting", "progress": None, "pid": None, "exit_code": None,
                "started": None, "finished": None, "email": (email or "").strip(), "notified": False,
-               "params": params or {}, "outputs": outputs or [], "parent": parent, "error": None}
+               "params": params or {}, "outputs": outputs or [], "parent": parent, "error": None, "shared": bool(shared)}
         files = {"run.sh": (WRAPPER.replace("@ID@", jid).replace("@TITLE@", re.sub(r"[\r\n]", " ", title)[:100]).encode(), 0o755),
                  "body.sh": (body.encode(), 0o755)}
         if setup.strip():
@@ -354,6 +365,9 @@ class Jobs:
         """A file the job wrote (e.g. tables/qc_thresholds_proposed.tsv), relative to its output folder."""
         if name.startswith("/") or ".." in name.split("/"):
             raise PermissionError("Only files inside the job's output folder")
+        if job.get("shared"):
+            # read as this service's account from a folder anyone can change: never
+            raise PermissionError("This job's files are opened from the folder itself, not through Omics Workbench")
         path = job["folder"] + "/" + name
         f = self.open_here(job, path)
         if f is not None:

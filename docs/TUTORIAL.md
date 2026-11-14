@@ -442,7 +442,9 @@ pages are tabs in the top bar, next to **Omics Workbench** (which opens the over
 load). The pipeline pages end with **Where to run**: cards with each server's current CPU, memory and free cores (THOR
 is the default), your account and password on that server (sent encrypted, kept only while the job runs), optional
 environment lines (`conda activate …`) and an e-mail address for when the job ends. Downloads always run on THOR (the
-network matters, not the CPU): that page asks only for your THOR account, password and e-mail. **Check paths on the server** verifies from that server
+network matters, not the CPU). Into a shared folder under `/nfs` (writable by everyone, as the lab's folders are) they
+need no account: Omics Studio downloads there itself and the files are writable by everyone too. Only for a folder in
+your home give your THOR account and password. **Check paths on the server** verifies from that server
 that the inputs, references, indexes and programs exist and that the output folder can be written; **Show script** shows
 exactly what will run. **Start** opens the job's page: its current step, the live log and Stop. Jobs keep running when you
 close the page, the browser or the app; **Jobs** lists them.

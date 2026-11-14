@@ -206,8 +206,10 @@ export class RunPanel {
   constructor(container: HTMLElement, private what = 'job', private fixed = false) {
     this.el = container;
     container.classList.add('wb-run');
-    container.innerHTML = (fixed ? `<h3>Your account</h3>
-      <p class="muted small">Runs on <b data-sname>THOR</b> and writes the files in your account there.</p>
+    container.innerHTML = (fixed ? `<h3>Account <small class="muted">(only for a home folder)</small></h3>
+      <p class="muted small">Runs on <b data-sname>THOR</b>. Into a shared folder under <span class="mono">/nfs</span> (writable by
+      everyone) it needs no account: Omics Studio downloads there itself and the files are writable by everyone, like the folder.
+      Into your home folder, give your THOR account and password.</p>
       <div data-servers hidden></div>` : `<h3>Where to run</h3>
       <p class="muted small">Paths under <span class="mono">/nfs</span> are the same on every server; the check below verifies them from the chosen server.</p>
       <div class="wb-servers" data-servers><span class="muted">Loading servers…</span></div>`) + `

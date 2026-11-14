@@ -228,6 +228,70 @@ class LocalJob(unittest.TestCase):
         self.assertEqual(slow["state"], "cancelled")
 
 
+class SharedDownloads(unittest.TestCase):
+    """A download into a shared (777) folder runs in this service's account without a password; a home folder needs one."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        os.environ.pop("OMICS_CANVAS_AUTH", None)
+        root = Path(self.tmp.name)
+        self.saved = (server.SHARED_ROOTS, jobs.PRIVATE_RUNS, server.download)
+        server.SHARED_ROOTS = (str(root / "nfs") + "/",)
+        jobs.PRIVATE_RUNS = root / "private" / "runs"
+        self.lab, self.home = root / "nfs" / "lab", root / "nfs" / "home"
+        self.lab.mkdir(parents=True)
+        self.home.mkdir()
+        os.chmod(self.lab, 0o777)
+        os.chmod(self.home, 0o755)
+        (root / "nfs" / "link").symlink_to(self.lab)
+        self.app = server.App(self.tmp.name, "", 60)
+        self.guest = {"user": "guest", "admin": False}
+
+    def tearDown(self):
+        server.SHARED_ROOTS, jobs.PRIVATE_RUNS, server.download = self.saved
+        self.tmp.cleanup()
+
+    def test_which_folders_are_shared(self):
+        nfs = Path(self.tmp.name) / "nfs"
+        self.assertTrue(server.shared_folder(str(self.lab)))
+        self.assertTrue(server.shared_folder(str(self.lab / "new" / "deeper")))  # its nearest existing folder is shared
+        self.assertFalse(server.shared_folder(str(self.home / "x")))  # not writable by everyone (a home)
+        self.assertFalse(server.shared_folder(str(nfs / "link" / "x")))  # through a link
+        self.assertFalse(server.shared_folder(str(self.lab) + "/../home/x"))
+        self.assertFalse(server.shared_folder("/tmp/x"))  # outside /nfs
+        self.assertFalse(server.shared_folder(""))
+
+    def test_download_without_an_account(self):
+        if not self.app.servers.default()["host"] in remote.LOCAL:
+            self.skipTest("not on a configured server")
+        dest = self.lab / "run1"
+        script = "mkdir -p {0} && echo data > {0}/f.txt\n".format(dest)
+        server.download = type("FakeDownload", (), {"plan": staticmethod(lambda *a: {"script": script, "root": str(dest), "files": []})})
+        self.app.remember_source(self.guest, {"id": "s1", "kind": "https", "label": "example"})
+        with self.assertRaises(PermissionError):
+            self.app.download("run", {"source": "s1", "dest": str(self.home / "x")}, self.guest)
+        with self.assertRaises(PermissionError):
+            self.app.check({"kind": "download", "params": {"output": str(self.home / "x")}}, self.guest)
+        self.assertTrue(self.app.check({"kind": "download", "params": {"output": str(dest)}}, self.guest)["results"])
+        self.assertEqual(os.stat(str(dest)).st_mode & 0o777, 0o777)  # the check made the folder: shared too
+        job = self.app.jobs.get(self.app.download("run", {"source": "s1", "dest": str(dest)}, self.guest)["id"])
+        self.assertTrue(job["shared"])
+        self.assertEqual(job["owner"], "guest")
+        self.assertTrue(job["job_dir"].startswith(str(jobs.PRIVATE_RUNS)))  # not in the folder anyone can change
+        self.assertEqual(os.stat(str(jobs.PRIVATE_RUNS)).st_mode & 0o777, 0o700)
+        for _ in range(60):
+            if job["state"] == "running":
+                self.app.jobs.poll(job)
+            if job["state"] in ("done", "failed"):
+                break
+            time.sleep(0.5)
+        self.assertEqual(job["state"], "done", job.get("error"))
+        self.assertEqual(os.stat(str(dest / "f.txt")).st_mode & 0o777, 0o666)  # writable by everyone, as the folder
+        self.assertFalse((dest / ".omics-workbench").exists())
+        with self.assertRaises(PermissionError):
+            self.app.jobs.read_file(job, "f.txt")
+
+
 class Gateway(unittest.TestCase):
     def test_routes_and_forwarded_for(self):
         import http.server

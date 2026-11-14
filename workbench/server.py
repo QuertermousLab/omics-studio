@@ -86,6 +86,25 @@ def decrypt_passwords(value, key):
     return value
 
 
+SHARED_ROOTS = ("/nfs/",)  # where the lab's shared (777) folders are
+
+
+def shared_folder(path):
+    """Whether `path` is in the lab's shared space: under /nfs, its nearest existing folder writable by everyone (the
+    shared folders are 777; homes are not) and reached through no symbolic link."""
+    p = os.path.normpath(path or "")
+    if not p.startswith(SHARED_ROOTS) or p != (path or "").rstrip("/"):
+        return False
+    q = p
+    while q != "/" and not os.path.lexists(q):
+        q = os.path.dirname(q)
+    try:
+        info = os.lstat(q)
+    except OSError:
+        return False
+    return os.path.realpath(q) == q and stat.S_ISDIR(info.st_mode) and bool(info.st_mode & stat.S_IWOTH)
+
+
 def load_gate():
     folder = os.environ.get("OMICS_CANVAS_AUTH", "").strip()
     if not folder:
@@ -439,8 +458,16 @@ class App:
         return runs
 
     def check(self, b, who):
-        target, _, _ = self.target(b, who)
         p = b.get("params") or {}
+        if b.get("kind") == "download" and not b.get("password") and not who.get("admin"):
+            # as the download itself will run: this service's account, into a shared folder only
+            output = (p.get("output") or "").rstrip("/")
+            if not shared_folder(output):
+                raise PermissionError("{} is not a shared folder (one under /nfs that everyone can write to, reached "
+                                      "through no link): give your THOR account and password to download there".format(output or "The folder"))
+            target, shared = remote.Target(self.servers.default()), True
+        else:
+            (target, _, _), shared = self.target(b, who), False
         if b.get("kind") == "singlecell":
             need, tools = pipelines.singlecell_requirements(p, self.wrappers())
             inputs = sorted({d for s in p.get("samples") or [] if s.get("include", True) for d in s.get("dirs", [])} |
@@ -452,17 +479,23 @@ class App:
             need, tools = pipelines.bulk_requirements(p, self.wrappers())
             inputs = sorted({f for s in p.get("samples") or [] if s.get("include", True) for f in (s.get("r1") or []) + (s.get("r2") or [])})
         output = (p.get("output") or "").strip() or None
-        results = pipelines.check_paths(target, need, tools, inputs[:400], output)
+        results = pipelines.check_paths(target, need, tools, inputs[:400], output, shared=shared)
         return {"server": target.server["name"], "as": target.describe(), "results": results,
                 "ok": all(r["ok"] for r in results if r["what"] != "program" or r["path"] not in ("fastqc",))}
 
-    def start_job(self, b, who, kind, title, folder, body, **extra):
-        target, account, password = self.target(b, who)
+    def start_job(self, b, who, kind, title, folder, body, shared=False, **extra):
         if not folder or not folder.startswith("/"):
             raise ValueError("Give the output folder's full path")
+        if shared:
+            # a download into a shared folder: this service's account on this machine (see download())
+            server, account, password = self.servers.default(), "", ""
+        else:
+            target, account, password = self.target(b, who)
+            server = target.server
         return self.jobs.public(self.jobs.create(
-            who, kind, title, target.server["id"], account, password, folder, body,
-            setup=(self.settings.get("setup") or "") + "\n" + (b.get("setup") or ""), email=b.get("email") or "", **extra))
+            who, kind, title, server["id"], account, password, folder, body,
+            setup=(self.settings.get("setup") or "") + "\n" + (b.get("setup") or ""), email=b.get("email") or "",
+            shared=shared, **extra))
 
     def bulk(self, action, b, who):
         p = b.get("params") or {}
@@ -560,11 +593,19 @@ class App:
         if action == "plan":
             return {k: v for k, v in plan.items() if k != "secrets"}
         if action == "run":
+            dest = (b.get("dest") or "").rstrip("/")
+            # no account given: the lab's shared folders under /nfs are writable by everyone, so the download runs in
+            # this service's account (files writable by everyone too, as the folders); a home folder needs your account
+            shared = not b.get("password") and not who.get("admin")
+            if shared and not shared_folder(dest):
+                raise PermissionError("{} is not a shared folder (one under /nfs that everyone can write to, reached "
+                                      "through no link): give your THOR account and password to download there".format(dest))
             env = {"WB_SECRET_" + k if not k.startswith("WB_SECRET_") else k: v for k, v in (plan.get("secrets") or {}).items()}
             title = b.get("title") or "Download {} → {}".format(source.get("label") or source.get("kind"), plan.get("root") or b.get("dest"))
             params = {"source": {k: v for k, v in source.items() if k not in ("secrets", "listing", "lookup")}, "dest": b.get("dest"),
                       "options": b.get("options") or {}, "root": plan.get("root"), "files": len(plan.get("files") or [])}
-            return self.start_job(b, who, "download", title, (b.get("dest") or "").rstrip("/"), plan["script"],
+            body = "umask 0000  # the shared folders are writable by everyone: so are the files\n" + plan["script"] if shared else plan["script"]
+            return self.start_job(b, who, "download", title, dest, body, shared=shared,
                                   secrets_env=env, params=params, outputs=[plan.get("root")] if plan.get("root") else [])
         raise KeyError("Not found")
 

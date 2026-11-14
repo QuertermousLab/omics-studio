@@ -364,9 +364,10 @@ def singlecell_requirements(p, wrappers):
     return need, tools
 
 
-def check_paths(target, need, tools, inputs, output):
-    """Run the checks on the target: [{what, path, ok, detail}] and the tools found."""
-    lines = []
+def check_paths(target, need, tools, inputs, output, shared=False):
+    """Run the checks on the target: [{what, path, ok, detail}] and the tools found. shared: the output is in a shared
+    folder (folders made here are writable by everyone, as the download will make them)."""
+    lines = ["umask 0000"] if shared else []
     for i, (what, path) in enumerate(need):
         lines.append("if [ -e {0} ]; then echo 'need\t{1}\tok'; else echo 'need\t{1}\tmissing'; fi".format(q(path), i))
     for i, path in enumerate(inputs):

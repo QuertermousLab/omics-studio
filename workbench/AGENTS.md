@@ -16,7 +16,13 @@ User documentation: [README.md](README.md). The repository rules in [../AGENTS.m
   password are then followed through NFS, or ask for the password again.
 - **Passwords**: account passwords reach the server encrypted (`rsa:` fields, decrypted in `decrypt_passwords`), stay in
   memory, and never go into a file, a log, a job record or a command line. Only administrators run without a password
-  (the service's key). Download secrets (delivery passwords) go to the job in `secrets.env` (mode 600, deleted by
+  (the service's key) — with one exception: a download into a shared folder (`shared_folder()`: under `/nfs`, its
+  nearest existing folder writable by everyone, reached through no link; the lab's folders are 777, homes are not;
+  the user's decision, 2026-11-13) runs in the service's account for anyone signed in, with `umask 0000`. Such a job
+  (`shared: true`) keeps its job folder in `jobs.PRIVATE_RUNS` (`~/.local/state/omics-workbench/runs`, mode 700, in
+  the service account's home) and never reads files through the service (`read_file` refuses): the shared folders,
+  and this checkout's `state/`, are writable by everyone, so a job folder there could be swapped for links or fake
+  pid files. Download secrets (delivery passwords) go to the job in `secrets.env` (mode 600, deleted by
   `run.sh` as it starts). Keep it that way.
 - Every value from a page reaches a script through `shlex.quote`; sample and group names are checked (`name_ok`).
 - The pipelines are the lab's [Pipelines-Wrappers](https://github.com/QuertermousLab/Pipelines-Wrappers) (settings
