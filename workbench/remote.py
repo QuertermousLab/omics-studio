@@ -73,7 +73,8 @@ class Target:
         return not self.password
 
     def describe(self):
-        return "{}@{}".format(self.user, self.server.get("name") or self.host)
+        name = self.server.get("name")
+        return "{}@{} ({})".format(self.user, name, self.host) if name and name != self.host else "{}@{}".format(self.user, self.host)
 
     def control_path(self):
         key = "|".join([self.host, str(self.port), self.user, self.password or "<key>"]).encode()
@@ -141,7 +142,9 @@ def login_failure(target, code, err):
         raise RemoteError("{}: could not log in ({})".format(target.describe(), text[-200:] or "sshpass {}".format(code)))
     if code == 255:
         if "Permission denied" in text:
-            how = "the password" if target.password else "the server's SSH key (give the account's password, or install the key in Admin → Servers)"
+            how = "the password" if target.password else (
+                "this service's SSH key ({}/.ssh/id_rsa.pub of {}; give the account's password, install the key in Admin → Servers, "
+                "or run ssh-copy-id -i ~/.ssh/id_rsa.pub {}@{} on this server)".format(Path.home(), SERVICE_USER, target.user, target.host))
             raise RemoteError("{}: login refused with {}".format(target.describe(), how))
         raise RemoteError("{}: {}".format(target.describe(), text[-300:] or "SSH connection failed"))
 
