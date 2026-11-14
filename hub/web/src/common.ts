@@ -55,7 +55,7 @@ interface ChooserModule {
   selectWorkspace(id: string): Promise<Workspace>;
   watchWorkspace(currentId: () => string | null | undefined, onChange: (w: Workspace | null) => void): void;
 }
-const CHOOSER_URL = '/genome-canvas/workspace-chooser.mjs?v=20261106.1';
+const CHOOSER_URL = '/genome-canvas/workspace-chooser.mjs?v=20261113.1';
 let chooserModule: Promise<ChooserModule> | null = null;
 const chooser = () => (chooserModule ??= import(/* not bundled: served by Genome Canvas */ CHOOSER_URL as string) as Promise<ChooserModule>);
 

@@ -1,5 +1,10 @@
 Native Omics Workbench builds for Apple Silicon Macs. First launch: see [../../RELEASE_NOTES.md](../../RELEASE_NOTES.md).
 
+## What's new in 1.0.1
+
+- **Type**: the window's text and headings are set in the system font (San Francisco), as the web pages now are
+- The pages inside the window follow the app's light / dark setting (checked against a test server in the macOS preview build)
+
 ## What's new in 1.0.0
 
 - **Omics Workbench**, the analysis part of Omics Studio, in its own window: the server's `/workbench/` pages with a

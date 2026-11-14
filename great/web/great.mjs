@@ -11,7 +11,7 @@ const api = (path) => new URL(`api/${path}`, new URL(".", location.href)).toStri
 const appURL = (path) => new URL(`${CANVAS}${path}`, location.href).toString();
 // Omics Canvas's workspace chooser and manager, served by Genome Canvas (the same window in every module)
 let chooserModule = null;
-const chooser = () => (chooserModule ??= import(appURL("workspace-chooser.mjs?v=20261106.1")));
+const chooser = () => (chooserModule ??= import(appURL("workspace-chooser.mjs?v=20261113.1")));
 
 const ASSEMBLY_NAMES = {
   hg38: ["Human", "GRCh38 (hg38)"], hg19: ["Human", "GRCh37 (hg19)"],

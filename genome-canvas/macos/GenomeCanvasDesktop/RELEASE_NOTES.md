@@ -1,5 +1,9 @@
 Native Genome Canvas Desktop builds for Apple Silicon Macs.
 
+## What's new in 1.10.1
+
+- **Type**: the window's text and headings are set in the system font (San Francisco), as the web pages now are
+
 ## What's new in 1.10.0
 
 - **Sign Out** (**Genome Canvas → Sign Out**) when the server asks for sign-in; server mode only

@@ -1,4 +1,4 @@
-// Omics Canvas workspaces, for every module: the chooser (pick, find or create a workspace; the window that opens
+// Omics Studio workspaces, for every module: the chooser (pick, find or create a workspace; the window that opens
 // by itself when none is chosen) and the manager (Home workspaces to hide or restore, manual ones to delete).
 // Genome Canvas owns the workspaces (its /api/workspaces and the genome_canvas_workspace cookie); the hub's pages,
 // GREAT and Genome Canvas itself import this module from Genome Canvas (…/genome-canvas/workspace-chooser.mjs), so
@@ -200,7 +200,7 @@ function render() {
   dialog.querySelector("#ocws-title").textContent = manage ? "Manage workspaces" : "Choose your workspace";
   dialog.querySelector("[data-ocws-subtitle]").textContent = manage
     ? "Home workspaces come from /home on the server; manual workspaces start in the shared /nfs folders."
-    : "Your datasets, tracks and analyses are kept per workspace, the same in every Omics Canvas module.";
+    : "Your datasets, tracks and analyses are kept per workspace, the same in every Omics Studio module.";
   dialog.querySelector("[data-ocws-switch]").innerHTML = manage ? "&larr; Back to choosing" : "Manage workspaces&hellip;";
   dialog.querySelector("[data-ocws-close]").hidden = Boolean(state.options.required && !state.selected);
   const body = dialog.querySelector("[data-ocws-body]");

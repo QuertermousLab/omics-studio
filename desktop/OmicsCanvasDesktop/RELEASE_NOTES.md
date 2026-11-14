@@ -1,5 +1,10 @@
 Native Omics Canvas Desktop builds for Apple Silicon Macs. First launch: see [../../RELEASE_NOTES.md](../../RELEASE_NOTES.md).
 
+## What's new in 1.4.1
+
+- **Type**: the window's text and headings are set in the system font (San Francisco), as the web pages now are
+- The "Omics Studio" name: the home button and the workspace window (from the server's pages)
+
 ## What's new in 1.4.0
 
 - **Sign Out** in the application menu (Genome Canvas.app too, in server mode)

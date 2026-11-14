@@ -6,7 +6,7 @@ import { installManhattanRenderer } from "./manhattan-style.mjs?v=20261007.2";
 import { locusCompareSVG, locusCompareTSV, snpTooltip } from "./locuscompare.mjs?v=20261103.1";
 import { DARK_CANVAS, LIGHT_CANVAS, canvasTheme, installDarkCanvasAdapter, setCanvasTheme } from "./canvas-theme.mjs?v=20261007.2";
 import { normalizeReferenceResources } from "./reference-resources.mjs?v=20261005.1";
-import { announceWorkspace, chooseWorkspace, watchWorkspace } from "./workspace-chooser.mjs?v=20261106.1";
+import { announceWorkspace, chooseWorkspace, watchWorkspace } from "./workspace-chooser.mjs?v=20261113.1";
 import {
   DEFAULT_HIGHLIGHT_COLOR,
   HIGHLIGHT_FILL_ALPHA,
