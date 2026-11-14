@@ -206,11 +206,11 @@ export class RunPanel {
   constructor(container: HTMLElement, private what = 'job', private fixed = false) {
     this.el = container;
     container.classList.add('wb-run');
-    container.innerHTML = fixed ? `<h3>Your account</h3>
+    container.innerHTML = (fixed ? `<h3>Your account</h3>
       <p class="muted small">Runs on <b data-sname>THOR</b> and writes the files in your account there.</p>
       <div data-servers hidden></div>` : `<h3>Where to run</h3>
       <p class="muted small">Paths under <span class="mono">/nfs</span> are the same on every server; the check below verifies them from the chosen server.</p>
-      <div class="wb-servers" data-servers><span class="muted">Loading servers…</span></div>
+      <div class="wb-servers" data-servers><span class="muted">Loading servers…</span></div>`) + `
       <div class="wb-grid3">
         <label class="wb-field"><span>Account${fixed ? '' : ' on <b data-sname>the server</b>'}</span><input class="input" name="account" autocomplete="off" spellcheck="false" placeholder="your account" /></label>
         <label class="wb-field"><span>Password</span><input class="input" name="password" type="password" autocomplete="new-password" placeholder="kept in memory while the ${esc(what)} runs" /></label>

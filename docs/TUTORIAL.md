@@ -35,9 +35,10 @@ Open **http://171.65.68.140:8892** (THOR). From outside Stanford, connect to the
   own sign-in, and GREAT's programming interfaces (rGREAT, `greatStart.php`) work without signing in.
 
 The home page (`/`; every module has its own address below it: `/genome-canvas/`, `/great/`, `/spatial/`,
-`/single-cell/`, `/crispr/`) groups the modules — *Genome and regions* (Genome Canvas, GREAT) and *Single-cell, spatial
-and CRISPR screens* — and shows whether each service is online and how many datasets your workspace has in each (*yours*) and how many
-the lab shares ([section 6](#6-shared-data)).
+`/single-cell/`, `/crispr/`, `/workbench/`) groups the modules — *Genome and regions* (Genome Canvas, GREAT), *Omics
+Canvas: single-cell, spatial and CRISPR screens* and *Omics Workbench: analysis on the lab's servers* — and shows
+whether each service is online and how many datasets your workspace has in each (*yours*) and how many the lab shares
+([section 6](#6-shared-data)).
 
 ![Home page, light and dark](images/hub.png)
 
@@ -46,8 +47,10 @@ the lab shares ([section 6](#6-shared-data)).
   restores Home workspaces and deletes manual ones (files are never deleted). Choosing a workspace in one page switches
   the other open pages too. Datasets you add belong to it: only you see, rename and remove them in your lists. A
   dataset's **link opens for anyone** you send it to.
-- **Theme**: light / dark follows your system; the moon / sun button switches it, for all four modules.
-- The small **Omics Canvas** button at the top left of every module returns to the home page.
+- **Theme**: light / dark follows your system; the moon / sun button switches it, for every module at once.
+- The **Omics Studio** button at the top left of every page (Genome Canvas, GREAT and the admin page too) returns to
+  the home page. Each part has its own icon, in the browser tab and in its Mac app: Omics Studio (the home page,
+  sign-in and admin), Genome Canvas, GREAT, Omics Canvas (the viewers) and Omics Workbench.
 
 ## 2. Genome Canvas
 
@@ -111,7 +114,7 @@ it and tests GO terms, mouse and human phenotypes and single genes.
 - **Open it** from a region track's menu in Genome Canvas (right-click a BED / narrowPeak track → **GREAT enrichment
   of these regions…**, which brings that track as the test set), with the **GREAT** button under the source buttons
   (in the Mac app: the same button or **File → GREAT Enrichment…**, ⌥⌘G, which open it in your browser), or from the
-  Omics Canvas home page.
+  Omics Studio home page.
 - **Regions**: upload a file, paste regions, pick a server file or give a public URL. Any BED flavor, narrowPeak,
   CSV/TSV tables whose header names the chromosome, start and end columns (e.g. a `GRanges` exported from R), MACS
   `.xls` and `chr1:1,000-2,000` lists are read; `.gz` and `.zip` too. Chromosome names such as `1` or `MT` are
@@ -374,12 +377,13 @@ Download from the [latest release](https://github.com/QuertermousLab/omics-studi
 (the apps are not notarized):
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Omics Canvas.app" "/Applications/Genome Canvas.app"
+xattr -dr com.apple.quarantine "/Applications/Omics Canvas.app" "/Applications/Genome Canvas.app" "/Applications/Omics Workbench.app"
 ```
 
-Both apps show the server's sign-in page in their window the first time; with **Keep me signed in** they stay signed
-in for a year. **Sign Out** is in the application menu (**Omics Canvas → Sign Out**, **Genome Canvas → Sign Out**).
-Genome Canvas.app's This Mac mode needs no sign-in.
+The apps show the server's sign-in page in their window the first time; with **Keep me signed in** they stay signed
+in for a year. **Sign Out** is in the application menu (**Omics Canvas → Sign Out**, **Genome Canvas → Sign Out**,
+**Omics Workbench → Sign Out**). Genome Canvas.app's This Mac mode needs no sign-in. Light / dark follows the system,
+or choose it in **View → Appearance** (⇧⌘T switches): the pages inside the window follow.
 
 **Genome Canvas.app** — the genome browser in a native window: the same canvas with a native track list, genome and
 locus fields, highlight tools and workspace menu. **Server** uses THOR's files; **This Mac** starts a built-in backend
@@ -408,12 +412,20 @@ opens with a click. Right-click a dataset for **Open**, **Edit Samples…**, **R
 - Genome Canvas links (from the CRISPR explorer) open in **Genome Canvas.app** when it is installed — in place if it
   is already open, keeping its tracks — otherwise in your browser.
 
-**Server and port forwarding** — both apps connect to THOR (171.65.68.140, port 8892) by default. **Server…** in
-Omics Canvas's sidebar, **Connect to Server…** / the **Server** button in Genome Canvas (⌘, in both) change it:
+**Omics Workbench.app** — the Workbench pages ([section 9](#9-omics-workbench-downloads-and-pipelines)) in their own
+window. The sidebar opens **Overview**, **Download data**, **Bulk sequencing**, **Single-cell**, **Jobs** and, for
+administrators, **Servers** (⌘1 … ⌘6), and lists your recent jobs (queued and running first, with the current step;
+click one for its log). The app checks your jobs every 30 seconds, also with its window closed: a **notification** says
+when one finishes or fails (click it for the log; **File → Notify When Jobs End** turns them off) and the **Dock badge**
+counts the running ones. ⇧⌘J checks now, ⇧⌘B opens the page in your browser.
+
+**Server and port forwarding** — the apps connect to THOR (171.65.68.140, port 8892) by default. **Server…** in
+Omics Canvas's and Omics Workbench's sidebars, **Connect to Server…** / the **Server** button in Genome Canvas (⌘, in
+all three) change it:
 
 ![Connection settings with SSH port forwarding](images/app-connection-sheet.png)
 
-1. **Server** and **Port**: the Omics Canvas gateway. For another lab server use the address and port its
+1. **Server** and **Port**: the Omics Studio gateway. For another lab server use the address and port its
    administrator gives you (`./vizhubctl status` on the server prints them).
 2. Off campus without the VPN, or for a server that only listens on its own machine: tick **Connect through SSH port
    forwarding**, then **SSH host** (empty: the server itself) and its **Port** (usually 22), your **Account** on it and,
@@ -425,10 +437,12 @@ Omics Canvas's sidebar, **Connect to Server…** / the **Server** button in Geno
 
 ## 9. Omics Workbench: downloads and pipelines
 
-**Omics Workbench** (home page, bottom group, or `/workbench/`) runs work on the lab's servers in your account. Every
-page ends with **Where to run**: cards with each server's current CPU, memory and free cores (THOR is the default),
-your account and password on that server (sent encrypted, kept only while the job runs), optional environment lines
-(`conda activate …`) and an e-mail address for when the job ends. **Check paths on the server** verifies from that server
+**Omics Workbench** (home page, bottom group, or `/workbench/`) runs work on the lab's servers in your account. Its
+pages are tabs in the top bar, next to **Omics Workbench** (which opens the overview: your recent jobs and the servers'
+load). The pipeline pages end with **Where to run**: cards with each server's current CPU, memory and free cores (THOR
+is the default), your account and password on that server (sent encrypted, kept only while the job runs), optional
+environment lines (`conda activate …`) and an e-mail address for when the job ends. Downloads always run on THOR (the
+network matters, not the CPU): that page asks only for your THOR account, password and e-mail. **Check paths on the server** verifies from that server
 that the inputs, references, indexes and programs exist and that the output folder can be written; **Show script** shows
 exactly what will run. **Start** opens the job's page: its current step, the live log and Stop. Jobs keep running when you
 close the page, the browser or the app; **Jobs** lists them.
@@ -438,12 +452,15 @@ close the page, the browser or the app; **Jobs** lists them.
   files. Choose the destination and how much of the source's folders to keep, and **Show final paths** before starting.
   The download tries SFTP, lftp, scp and HTTPS in turn, resumes, retries and checks MD5 sums.
 - **Bulk sequencing**: choose RNA-seq, ChIP-seq, CUT&RUN, CUT&Tag or ATAC-seq and the FASTQ folder, then **Find samples**:
-  read pairs and lanes are joined into samples with names you can edit. RNA-seq proposes groups (the name without its
+  read pairs and lanes are joined into samples with names you can edit (choosing another folder clears the list). RNA-seq proposes groups (the name without its
   replicate number) and lists every pair of groups for DESeq2 (untick or swap any). ChIP-seq marks input / IgG samples and
   gives each sample the control that matches its name (change it, or none); MACS2 calls narrow or broad peaks with your
   cutoffs. ATAC-seq takes your MACS2 options.
-- **Single cell**: Cell Ranger GEX, ATAC or multiome (GEX and ATAC libraries paired by name), optionally `aggr`, then
-  Seurat. With **Let me review the QC thresholds** the first job proposes per-sample thresholds (median ± 3 MADs of the
+- **Single cell**: Cell Ranger GEX, ATAC or multiome, optionally `aggr`, then Seurat. Choose the folder with both
+  libraries, or the GEX and the ATAC folder apart. The 10x index (`SI-TT-E1`) and flowcell in a FASTQ name are ignored,
+  so `Mult_1_RNA-SI_TT_E1_22V7L7LT4` and `Mult_1-SI_3A_F8_22W32GLT4` become the pair **Mult_1**. Several sequencing runs
+  of one library (a `Sequence_Round2/` folder) are one library with one row per run, and merged copies (`merged/`) are
+  listed but not ticked, so no read is counted twice. With **Let me review the QC thresholds** the first job proposes per-sample thresholds (median ± 3 MADs of the
   log counts, with floors and caps; TSS enrichment, nucleosome signal and FRiP for ATAC) with a figure per sample; edit
   them on the job's page and **Continue** to filter, cluster, transfer labels from a reference (its label column is
   detected or chosen) and save RDS and h5ad / h5mu. **Seurat only** analyses Cell Ranger outputs that already exist.
@@ -453,9 +470,9 @@ close the page, the browser or the app; **Jobs** lists them.
 
 - **Share** any view by copying the address: dataset, sample (`?s=`), gene (`?gene=`) and CRISPR selection are in it.
 - **Figures**: every PNG export has a transparent background; set the plot background under *Display* to preview it.
-- **No login**: anyone who can reach port 8892 can open dataset links, and every dataset you add (and every server file
-  you load in Genome Canvas outside your Home folder) is listed under Shared for the whole lab; workspaces keep lists
-  tidy, they are not access control. Do not add data that must stay private.
+- **Not private within the lab**: anyone signed in can open dataset links, and every dataset you add (and every
+  server file you load in Genome Canvas outside your Home folder) is listed under Shared for the whole lab; workspaces
+  keep lists tidy, they are not access control. Do not add data that must stay private.
 - **Large data**: 50–100 GB fragment files take hours; the conversion card shows an estimate. Uncheck the fragment files
   under *Advanced* for a quick first look.
 - **API**: scripts can read a spatial or single-cell dataset's expression without the viewer. `<id>` is the dataset's

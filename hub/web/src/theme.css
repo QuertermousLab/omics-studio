@@ -18,7 +18,7 @@
   --amber-soft: #f5ecd8; --amber-text: #8f6a1f; --orange-soft: #f6e5dc; --orange-text: #a55d3d; --green-soft: #e6eedd; --green-text: #5a7642;
   --radius-sm: 7px; --radius: 9px; --radius-lg: 13px; --radius-xl: 18px;
   --shadow: 0 4px 14px rgba(46, 52, 64, .08); --shadow-lg: 0 24px 70px rgba(46, 52, 64, .2);
-  --font: "Studio Heading", "Manrope Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: "Manrope Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --heading-font: "Studio Heading", "Fraunces Variable", Georgia, "Times New Roman", serif;
   --canvas: #ffffff; --topbar-bg: #f8f9fb; --topbar-border: #d8dee9; --topbar-chip: #eceff4; --topbar-chip-border: #d8dee9;

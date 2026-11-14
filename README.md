@@ -116,7 +116,9 @@ omics-studio/            (on THOR: /nfs/baldar/quanyiz/vizhub)
 
 ## Look and workspaces
 
-- All pages use Genome Canvas's Nord light / dark theme, fonts and controls (`hub/web/src/theme.css`), and share its theme
+- All pages use Genome Canvas's Nord light / dark theme, fonts and controls (`hub/web/src/theme.css`): text in Manrope,
+  headings in Anthropic Serif when the server has the font in `state/fonts/heading-serif.ttf` (a proprietary face, not
+  in the repository: put the file there and run `./vizhubctl build`), else Fraunces. They share Genome Canvas's theme
   setting (`localStorage` key `genome-canvas:theme`, same origin): the sun/moon button switches every tool.
 - The viewers' plot background follows the theme (Genome Canvas's canvas color: white / `#2e3440`) unless a color is set
   under Display → Background (kept per browser; "Follow theme" goes back). PNG exports are always transparent; morphology
@@ -255,4 +257,5 @@ otherwise the default browser.
   so share links made before the move keep working (`server.py` reads the optional `id`).
 - After editing `hub/web/src`: `./vizhubctl build` (no restart). After editing `hub/server.py` or `converters/`:
   `./vizhubctl restart hub` — running conversions are interrupted and then resume from their checkpoints.
-- Every page has a small **Omics Canvas** button back to the home page `/` (Genome Canvas and GREAT too, when served through the gateway).
+- Every page has an **Omics Studio** button (`hub/web/pages/studio.svg`) back to the home page `/` (Genome Canvas,
+  GREAT and the admin page too, when served through the gateway).
