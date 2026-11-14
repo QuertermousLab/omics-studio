@@ -56,6 +56,29 @@ class Grouping(unittest.TestCase):
         self.assertTrue(fastq.is_control("IgG_A"))
         self.assertFalse(fastq.is_control("Inputless_H3K4me3"))
 
+    def test_multiome_runs_indexes_and_merged_copies(self):
+        # IGVF13 layout: 10x index and flowcell in the prefix, a second sequencing round, a merged/ copy
+        r = "/d/IGVF13/"
+        libs = fastq.group_10x(files(
+            r + "ATAC/Mult_1/Mult_1-SI_3A_F8_22W32GLT4_S1_L006_R1_001.fastq.gz", r + "ATAC/Mult_1/Mult_1-SI_3A_F8_22W32GLT4_S1_L006_R3_001.fastq.gz",
+            r + "ATAC/Sequence_Round2/Mult_1/Mult_1-SI_3A_F8_22J7FKLT4_S1_L004_R1_001.fastq.gz",
+            r + "ATAC/merged/Mult_1_S1_L001_R1_001.fastq.gz", r + "ATAC/merged/Mult_1_S1_L001_R3_001.fastq.gz",
+            r + "RNA/Mult_1_RNA/Mult_1_RNA-SI_TT_E1_22V7L7LT4_S1_L001_R1_001.fastq.gz",
+            r + "RNA/Sequence_Round2/Mult_1_RNA/Mult_1_RNA-SI_TT_E1_22JC23LT4_S1_L001_R2_001.fastq.gz"))
+        by = {(l["key"], l["merged"]): l for l in libs}
+        self.assertEqual(by[("Mult_1", False)]["runs"], 2)
+        self.assertEqual(by[("Mult_1_RNA", False)]["runs"], 2)
+        self.assertIn(("Mult_1", True), by)
+        pairs = fastq.pair_multiome(libs)
+        self.assertEqual(len(pairs), 1)
+        self.assertEqual(pairs[0]["atac"], by[("Mult_1", False)]["id"])  # the raw runs, not the merged copy
+        self.assertEqual(pairs[0]["name"], "Mult_1")
+        p = {"mode": "multiome", "output": "/o", "genome": "hg38",
+             "pairs": [{"name": "Mult_1", "gex": by[("Mult_1_RNA", False)], "atac": by[("Mult_1", False)]}]}
+        text = pipelines.singlecell_script(p, "/w")
+        self.assertIn("Mult_1-SI_3A_F8_22J7FKLT4,Chromatin Accessibility", text)
+        self.assertIn("Mult_1_RNA-SI_TT_E1_22V7L7LT4,Gene Expression", text)
+
     def test_10x_and_multiome_pairs(self):
         libs = fastq.group_10x(files("/x/PBMC_GEX_S1_L001_R1_001.fastq.gz", "/x/PBMC_GEX_S1_L001_R2_001.fastq.gz",
                                      "/y/PBMC_ATAC_S2_L001_R1_001.fastq.gz", "/y/PBMC_ATAC_S2_L001_R3_001.fastq.gz"))

@@ -18,8 +18,14 @@ initChrome('workbench');
 const path = location.pathname;
 const jobId = /^\/workbench\/jobs\/([a-z0-9]{12})\/?$/.exec(path)?.[1];
 const view = jobId ? 'jobs' : (VIEWS.find(([, , href]) => href !== '/workbench/' && path.startsWith(href))?.[0] ?? 'overview');
-const nav = document.querySelector<HTMLElement>('[data-wb-nav]')!;
-nav.innerHTML = VIEWS.map(([id, label, href]) => `<a href="${href}" class="${id === view ? 'sel' : ''}" ${id === view ? 'aria-current="page"' : ''}>${label}</a>`).join('');
+// the views sit in the top bar, after the page title (Omics Workbench), like tabs
+const nav = document.createElement('nav');
+nav.className = 'wb-tabs';
+nav.setAttribute('aria-label', 'Omics Workbench');
+nav.innerHTML = VIEWS.filter(([id]) => id !== 'overview').map(([id, label, href]) =>
+  `<a href="${href}" class="${id === view ? 'sel' : ''}" ${id === view ? 'aria-current="page"' : ''}>${label}</a>`).join('');
+document.querySelector('[data-page-title]')?.after(nav);
+document.querySelector('[data-page-title]')?.classList.toggle('sel', view === 'overview');
 const root = document.querySelector<HTMLElement>('[data-wb-root]')!;
 const title = VIEWS.find((v) => v[0] === view)![1];
 document.title = view === 'overview' ? 'Omics Workbench' : `${title} · Omics Workbench`;

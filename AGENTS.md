@@ -26,8 +26,10 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
 - `workbench/` (standard library, `workbench/server.py` on 127.0.0.1:8896, `vizhub-workbench.service`): Omics Workbench at
   `/workbench/` — downloads, bulk and Cell Ranger / Seurat jobs run detached on the chosen lab server in the person's
   account, and the servers' load (admin page Servers tab). See [workbench/AGENTS.md](workbench/AGENTS.md).
-- Gateway: THOR's administrator purged `apache2` on 2026-11-12 (`apt purge apache2 …`, account eric); ask them before
-  reinstalling it. `VIZHUB_GATEWAY=auto` then runs
+- Gateway: THOR's administrator purged `apache2` on 2026-11-12 (`apt purge apache2 …`, account eric) after Stanford's
+  security scan flagged CVE-2026-119618 (mod_http2 RCE; fixed in Apache 2.4.71; THOR had 2.4.58). Our `apache.conf.in`
+  never loads mod_http2, but the scan goes by the package version: reinstall Apache only at 2.4.71 or later and with
+  the administrator's agreement. `VIZHUB_GATEWAY=auto` then runs
   `gateway/gateway.py` (Python, the same routes as `apache.conf.in`, keep both in step). It must keep adding
   X-Forwarded-For: the backends treat requests from 127.0.0.1 without it as their own internal calls.
 - `auth/` (standard library, `auth/server.py` on 127.0.0.1:8895, `vizhub-auth.service`): sign-in (`/auth/`) and the admin
@@ -77,6 +79,14 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
   `python -m unittest discover hub/tests` (also run in CI).
 - Never delete or overwrite source data on `/nfs`; conversions write to `<source>.vizhub/` next to it.
 - Exported figures (PNG / SVG of the viewers, plots and Genome Canvas) are set in Arial (the user's rule).
+- Interface type (the user's choice, 2026-11-13): headings (`--heading-font`, "Studio Heading") in Anthropic Serif, body,
+  buttons and tables stay Manrope. The face is proprietary: it lives only in `state/fonts/heading-serif.ttf` on the server
+  (never commit it; the Mac apps do not bundle it), served by the hub build (`/hub/static/fonts/`) and the sign-in server
+  (`/auth/fonts/`); its `@font-face` covers weights 100-900 so headings are never drawn faux-bold, and pages fall back to
+  Fraunces where it is missing.
+- Icons: Omics Studio `hub/web/pages/studio.svg` (home page, the "Omics Studio" button, sign-in and admin), Omics Canvas
+  `favicon.svg` (the viewers, its Mac app), Omics Workbench `workbench.svg` (its pages, its Mac app), Genome Canvas and GREAT
+  their own.
 - Data colors in the viewers are data: change the interface theme tokens (`hub/web/src/theme.css`,
   Genome Canvas's Nord palette), not dataset colors.
 - Commit identity (repo config): `Genome Canvas Contributors <genome-canvas@users.noreply.github.com>`.

@@ -140,6 +140,8 @@ export function bulkPage(root: HTMLElement) {
     if (t.name === 'macs2') store.set('bulk:macs2', t.value);
     if (t.name === 'threads') store.set('bulk:threads', t.value);
     if (t.name === 'output') store.set('bulk:output', t.value.trim());
+    // another folder: the samples found in the previous one no longer apply
+    if (t.name === 'fastq') { samples = []; comparisons = []; renderSamples(); }
   });
 
   $('[data-scan]', root).onclick = async () => {
@@ -148,6 +150,8 @@ export function bulkPage(root: HTMLElement) {
     store.set('bulk:fastq', folder);
     const b = $<HTMLButtonElement>('[data-scan]', root);
     b.disabled = true; b.textContent = 'Searching…';
+    samples = []; comparisons = [];
+    renderSamples();
     try {
       const r = await wb<{ files: number; samples: Sample[]; paired: boolean }>('scan', { ...(await run.choice()), folder, kind: 'bulk' });
       samples = r.samples;

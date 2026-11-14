@@ -1,6 +1,9 @@
 /* Omics Canvas theme: Genome Canvas's Nord "Snow Storm" (light) and "Polar Night" (dark) tokens, fonts and
    controls (genome-canvas/styles.css), so the hub, viewers and explorer match the genome browser.
    The ATHENA viewer stylesheets use ATHENA's variable names; they are mapped onto these tokens below. */
+/* Headings: Anthropic Serif when the server has it (state/fonts/heading-serif.ttf, not in git: a proprietary face),
+   else Fraunces. One regular face declared for every weight, so headings set at 600-650 are never drawn bolder. */
+@font-face { font-family: "Studio Heading"; src: url("fonts/heading-serif.ttf") format("truetype"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "Manrope Variable"; src: url("fonts/manrope-latin-wght-normal.woff2") format("woff2-variations"), url("fonts/manrope-latin-wght-normal.woff2") format("woff2"); font-weight: 200 800; font-display: swap; }
 @font-face { font-family: "Fraunces Variable"; src: url("fonts/fraunces-latin-wght-normal.woff2") format("woff2-variations"), url("fonts/fraunces-latin-wght-normal.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 @font-face { font-family: "JetBrains Mono Variable"; src: url("fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations"), url("fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
@@ -17,7 +20,7 @@
   --shadow: 0 4px 14px rgba(46, 52, 64, .08); --shadow-lg: 0 24px 70px rgba(46, 52, 64, .2);
   --font: "Manrope Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --heading-font: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --heading-font: "Studio Heading", "Fraunces Variable", Georgia, "Times New Roman", serif;
   --canvas: #ffffff; --topbar-bg: #f8f9fb; --topbar-border: #d8dee9; --topbar-chip: #eceff4; --topbar-chip-border: #d8dee9;
   --tip-bg: #2e3440; --tip-text: #eceff4;
   /* data colors that read on both themes (Nord aurora) */

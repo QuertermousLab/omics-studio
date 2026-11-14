@@ -111,3 +111,9 @@ jobs:
           test -f "${app}/Contents/Resources/Fonts/Manrope-Variable.ttf"
           test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "${app}/Contents/Info.plist")" = "1.0.0"
           codesign --verify --deep --strict "${app}"
+      - name: Keep the app (to add it to a release by hand when needed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmicsWorkbenchDesktop-macOS-arm64
+          path: desktop/OmicsWorkbenchDesktop/dist/ci/OmicsWorkbenchDesktop-macOS.zip
+          retention-days: 14

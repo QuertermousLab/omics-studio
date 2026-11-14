@@ -202,14 +202,17 @@ export class RunPanel {
   el: HTMLElement;
   selected = '';
   private timer = 0;
-  constructor(container: HTMLElement, private what = 'job') {
+  /** fixed: always the default server (THOR), no server cards (downloads: the network, not the CPU, matters) */
+  constructor(container: HTMLElement, private what = 'job', private fixed = false) {
     this.el = container;
     container.classList.add('wb-run');
-    container.innerHTML = `<h3>Where to run</h3>
+    container.innerHTML = fixed ? `<h3>Your account</h3>
+      <p class="muted small">Runs on <b data-sname>THOR</b> and writes the files in your account there.</p>
+      <div data-servers hidden></div>` : `<h3>Where to run</h3>
       <p class="muted small">Paths under <span class="mono">/nfs</span> are the same on every server; the check below verifies them from the chosen server.</p>
       <div class="wb-servers" data-servers><span class="muted">Loading servers…</span></div>
       <div class="wb-grid3">
-        <label class="wb-field"><span>Account on <b data-sname>the server</b></span><input class="input" name="account" autocomplete="off" spellcheck="false" placeholder="your account" /></label>
+        <label class="wb-field"><span>Account${fixed ? '' : ' on <b data-sname>the server</b>'}</span><input class="input" name="account" autocomplete="off" spellcheck="false" placeholder="your account" /></label>
         <label class="wb-field"><span>Password</span><input class="input" name="password" type="password" autocomplete="new-password" placeholder="kept in memory while the ${esc(what)} runs" /></label>
         <label class="wb-field"><span>E-mail when it ends <small class="muted">(optional)</small></span><input class="input" name="email" type="email" placeholder="you@stanford.edu" /></label>
       </div>
@@ -240,7 +243,15 @@ export class RunPanel {
   async refresh() {
     try {
       const { servers } = await loadServers();
-      if (!this.selected) this.selected = store.get('server') || servers.find((s) => s.default)?.id || servers[0]?.id || '';
+      const fallback = servers.find((s) => s.default)?.id || servers[0]?.id || '';
+      if (this.fixed) {
+        this.selected = fallback;
+        $('[data-sname]', this.el).textContent = servers.find((s) => s.id === fallback)?.name ?? 'THOR';
+        $<HTMLInputElement>('[name=account]', this.el).value ||= store.get(`account:${fallback}`);
+        clearInterval(this.timer);
+        return;
+      }
+      if (!this.selected) this.selected = store.get('server') || fallback;
       $('[data-servers]', this.el).innerHTML = servers.map((s) => serverCard(s, s.id === this.selected)).join('');
       this.select(this.selected, false);
     } catch (err) { $('[data-servers]', this.el).innerHTML = `<span class="err">${esc((err as Error).message)}</span>`; }

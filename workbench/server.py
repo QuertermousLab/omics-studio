@@ -402,6 +402,11 @@ class App:
         if kind == "outs":
             return {"runs": self.scan_outs(target, folder)}
         files = fastq.scan(target, folder)
+        for extra in b.get("folders") or []:  # multiome: GEX and ATAC in separate folders
+            extra = (extra or "").strip()
+            if extra.startswith("/") and extra.rstrip("/") != folder.rstrip("/"):
+                seen = {f["path"] for f in files}
+                files += [f for f in fastq.scan(target, extra) if f["path"] not in seen]
         if kind == "10x":
             samples = fastq.group_10x(files)
             return {"files": len(files), "samples": samples, "pairs": fastq.pair_multiome(samples)}

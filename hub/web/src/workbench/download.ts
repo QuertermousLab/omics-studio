@@ -24,8 +24,8 @@ export function downloadPage(root: HTMLElement) {
   let selected = new Set<string>();
   let geo: Geo | null = null;
   root.innerHTML = `<header class="wb-head"><h1>Download data</h1>
-      <p class="muted">Sequencing deliveries and public data to a folder on a lab server. The download runs on the server you choose (its network decides which
-      ports are open: SFTP, lftp, scp and HTTPS are tried in turn), resumes after interruptions and checks MD5 sums when the delivery has them.</p></header>
+      <p class="muted">Sequencing deliveries and public data to a folder under <span class="mono">/nfs</span>, downloaded on THOR in your account. SFTP, lftp, scp
+      and HTTPS are tried in turn (ports are sometimes blocked); downloads resume after interruptions and MD5 sums are checked when the delivery has them.</p></header>
     <section class="card wb-card"><h3>1 · What to download</h3>
       <textarea class="input mono wb-paste" name="paste" rows="7" spellcheck="false" placeholder="${esc(EXAMPLE)}"></textarea>
       <div class="wb-row"><button type="button" class="btn btn--primary" data-read>Read</button>
@@ -45,10 +45,10 @@ export function downloadPage(root: HTMLElement) {
       <div class="wb-row"><button type="button" class="btn btn--light" data-plan>Show final paths</button></div>
       <div data-plan-out></div></section>
     <section class="card wb-card" data-run></section>
-    <div class="wb-actions"><button type="button" class="btn btn--light" data-check>Check the server</button><button type="button" class="btn btn--light" data-preview>Show script</button>
+    <div class="wb-actions"><button type="button" class="btn btn--light" data-check>Check the destination</button><button type="button" class="btn btn--light" data-preview>Show script</button>
       <span class="spacer"></span><button type="button" class="btn btn--primary" data-start>Start download</button></div>`;
   bindBrowse(root);
-  const run = new RunPanel($('[data-run]', root), 'download');
+  const run = new RunPanel($('[data-run]', root), 'download', true);
   const val = (n: string) => root.querySelector<HTMLInputElement>(`[name="${n}"]`)?.value.trim() ?? '';
 
   me();

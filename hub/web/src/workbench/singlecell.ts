@@ -2,7 +2,10 @@
 
 import { $, $$, RunPanel, bindBrowse, esc, fmtBytes, pathField, showScript, store, toast, wb } from './common';
 
-interface Lib { id: string; prefix: string; name: string; dirs: string[]; reads: string[]; size: number; files: number; kind: string; include?: boolean }
+interface Lib {
+  id: string; key: string; prefix: string; name: string; dirs: string[]; parts: { dir: string; prefix: string }[]; reads: string[]; size: number;
+  files: number; kind: string; merged: boolean; runs: number; include?: boolean;
+}
 interface Pair { gex: string; atac: string; name: string; include?: boolean }
 interface Run { kind: string; outs: string; name: string; aggr: boolean; include?: boolean }
 
@@ -82,6 +85,8 @@ export function singleCellPage(root: HTMLElement) {
     renderLibs();
   }
 
+  function clearFound() { libs = []; pairs = []; runs = []; }
+
   function renderLibs() {
     const box = $('[data-libs]', root);
     if (mode === 'seurat') {
@@ -94,21 +99,25 @@ export function singleCellPage(root: HTMLElement) {
     }
     if (!libs.length) { box.innerHTML = '<p class="muted small">Give the folder and press Find samples (10x file names: <span class="mono">&lt;sample&gt;_S1_L001_R1_001.fastq.gz</span>).</p>'; return; }
     if (mode === 'multiome') {
-      const opts = (kind: string, sel: string) => `<option value="">—</option>${libs.map((l) => `<option value="${l.id}" ${l.id === sel ? 'selected' : ''}>${esc(l.prefix)}${l.kind !== kind ? ' ?' : ''}</option>`).join('')}`;
+      const opts = (kind: string, sel: string) => `<option value="">—</option>${libs.map((l) => `<option value="${l.id}" ${l.id === sel ? 'selected' : ''}>${esc(libLabel(l))}${l.kind !== kind ? ' ?' : ''}</option>`).join('')}`;
       box.innerHTML = `<div class="table-wrap"><table class="table wb-table"><thead><tr><th></th><th>Run name</th><th>GEX library</th><th>ATAC library</th></tr></thead><tbody>
         ${pairs.map((p, i) => `<tr data-pair-i="${i}" class="${p.include === false ? 'off' : ''}"><td><input type="checkbox" data-pf="include" ${p.include === false ? '' : 'checked'} /></td>
           <td><input class="input input--sm mono" data-pf="name" value="${esc(p.name)}" /></td>
           <td><select class="input input--sm" data-pf="gex">${opts('gex', p.gex)}</select></td><td><select class="input input--sm" data-pf="atac">${opts('atac', p.atac)}</select></td></tr>`).join('')}
         </tbody></table></div><div class="wb-row"><button type="button" class="btn btn--light btn--sm" data-add-pair>Add a pair</button>
-        <span class="muted small">Libraries were paired by name without GEX / ATAC; ? marks a library that looks like the other kind.</span></div>
+        <span class="muted small">Libraries were paired by name without GEX / ATAC, index and flowcell; the sequencing runs of a library (other flowcells) go
+          together, and copies in <span class="mono">merged/</span> folders are offered but not chosen. ? marks a library that looks like the other kind.</span></div>
         <details><summary class="small">Libraries found (${libs.length})</summary>${libTable(false)}</details>`;
     } else box.innerHTML = libTable(true);
   }
+  const libLabel = (l: Lib) => `${l.key}${l.merged ? ' (merged copy)' : ''} · ${l.runs} run${l.runs === 1 ? '' : 's'}`;
   function libTable(editable: boolean) {
-    return `<div class="table-wrap"><table class="table wb-table"><thead><tr>${editable ? '<th></th><th>Run name</th>' : ''}<th>FASTQ prefix</th><th>Reads</th><th>Folders</th><th class="num">Size</th></tr></thead><tbody>
+    return `<div class="table-wrap"><table class="table wb-table"><thead><tr>${editable ? '<th></th><th>Run name</th>' : ''}<th>Library</th><th>Reads</th><th>Folders</th><th class="num">Size</th></tr></thead><tbody>
       ${libs.map((l, i) => `<tr data-lib-i="${i}" class="${l.include === false ? 'off' : ''}">${editable ? `<td><input type="checkbox" data-lf="include" ${l.include === false ? '' : 'checked'} /></td>
         <td><input class="input input--sm mono" data-lf="name" value="${esc(l.name)}" /></td>` : ''}
-        <td class="mono">${esc(l.prefix)}</td><td class="small">${esc(l.reads.join(' '))} · ${l.files} files</td><td class="mono small">${l.dirs.map(esc).join('<br>')}</td><td class="num">${fmtBytes(l.size)}</td></tr>`).join('')}
+        <td><span class="mono">${esc(l.key)}</span>${l.merged ? ' <span class="chip chip--warn">merged copy</span>' : ''}<br>
+          <span class="muted small" title="${esc(l.prefix.split(',').join('\n'))}">${l.runs} sequencing run${l.runs === 1 ? '' : 's'}</span></td>
+        <td class="small">${esc(l.kind.toUpperCase())} · ${esc(l.reads.join(' '))} · ${l.files} files</td><td class="mono small">${l.dirs.map(esc).join('<br>')}</td><td class="num">${fmtBytes(l.size)}</td></tr>`).join('')}
       </tbody></table></div>`;
   }
 
@@ -127,6 +136,8 @@ export function singleCellPage(root: HTMLElement) {
     if (pi && t.dataset.pf) { (pairs[+pi.dataset.pairI!] as any)[t.dataset.pf] = v; pi.classList.toggle('off', pairs[+pi.dataset.pairI!].include === false); }
     if (ri && t.dataset.rf) { (runs[+ri.dataset.runI!] as any)[t.dataset.rf] = v; renderLibs(); }
     if (t.name === 'seurat') $('[data-seurat]', root).hidden = !t.checked;
+    // another folder: what was found in the previous one no longer applies
+    if (t.name === 'fastq' || t.name === 'fastq_atac') { clearFound(); renderLibs(); }
     if (['threads', 'memory', 'output', 'ref', 'fastq_atac'].includes(t.name)) store.set(`sc:${t.name}`, t.value.trim());
     if (t.name === 'ref') { refColumns = []; renderRefColumns(); inspectReference(false); }
   });
@@ -165,6 +176,8 @@ export function singleCellPage(root: HTMLElement) {
     store.set('sc:fastq', folder);
     const b = $<HTMLButtonElement>('[data-scan]', root);
     b.disabled = true;
+    clearFound();
+    $('[data-libs]', root).innerHTML = '<p class="muted small">Searching…</p>';
     try {
       const choice = await run.choice();
       if (mode === 'seurat') {
@@ -172,19 +185,11 @@ export function singleCellPage(root: HTMLElement) {
         if (!val('output')) $<HTMLInputElement>('[name=output]', root).value = folder;
         toast(`${runs.length} Cell Ranger outputs`);
       } else {
-        const r = await wb<{ samples: Lib[]; pairs: Pair[] }>('scan', { ...choice, folder, kind: '10x' });
+        // multiome: an ATAC folder of its own is scanned with the first; libraries are grouped and paired on the server
+        const atacFolder = mode === 'multiome' ? val('fastq_atac') : '';
+        const r = await wb<{ samples: Lib[]; pairs: Pair[] }>('scan', { ...choice, folder, folders: atacFolder ? [atacFolder] : [], kind: '10x' });
         libs = r.samples;
-        const atacFolder = val('fastq_atac');
-        if (mode === 'multiome' && atacFolder && atacFolder !== folder) {
-          const r2 = await wb<{ samples: Lib[] }>('scan', { ...choice, folder: atacFolder, kind: '10x' });
-          const extra = r2.samples.map((l, i) => ({ ...l, id: `a${i + 1}`, kind: 'atac' }));
-          libs = [...libs.map((l) => ({ ...l, kind: 'gex' })), ...extra];
-          pairs = libs.filter((l) => l.kind === 'gex').map((g) => {
-            const base = (s: string) => s.replace(/[_\-.]*(gex|atac|rna|arc|ge|ca)(?=[_\-.]|$)/gi, '').replace(/^[_\-.]+|[_\-.]+$/g, '');
-            const a = extra.find((x) => base(x.prefix).toLowerCase() === base(g.prefix).toLowerCase());
-            return { gex: g.id, atac: a?.id ?? '', name: base(g.prefix) || g.name };
-          });
-        } else pairs = r.pairs;
+        pairs = r.pairs;
         if (!val('output')) $<HTMLInputElement>('[name=output]', root).value = `${folder.replace(/\/$/, '')}_cellranger`;
         toast(`${libs.length} libraries`);
       }
@@ -194,7 +199,7 @@ export function singleCellPage(root: HTMLElement) {
   };
 
   function params() {
-    const lib = (id: string) => { const l = libs.find((x) => x.id === id); return l ? { prefix: l.prefix, dirs: l.dirs } : null; };
+    const lib = (id: string) => { const l = libs.find((x) => x.id === id); return l ? { prefix: l.prefix, dirs: l.dirs, parts: l.parts } : null; };
     const included = runs.filter((r) => r.include !== false);
     const kinds = [...new Set(included.map((r) => r.kind))];
     const m = mode === 'seurat' ? kinds[0] ?? 'gex' : mode;

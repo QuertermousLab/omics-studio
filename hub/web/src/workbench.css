@@ -1,13 +1,12 @@
 /* Omics Workbench pages (workbench-page.ts): layout, forms, server cards, the log. Colors are theme tokens only. */
 .page-workbench [data-ws-button] { display: none; }
-.wb-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; width: min(1320px, 100% - 32px); margin: 0 auto; padding: 24px 0 60px; }
-.wb-nav { position: sticky; top: calc(var(--nav-h) + 20px); align-self: start; display: grid; gap: 2px; }
-.wb-nav a { padding: 8px 12px; border-radius: var(--radius); color: var(--text-2); font-weight: 600; text-decoration: none; }
-.wb-nav a:hover { background: var(--surface-hover); color: var(--text); }
-.wb-nav a.sel { background: var(--accent-soft); color: var(--accent-text); }
-html.desktop-embedded .wb-nav { display: none; }
-html.desktop-embedded .wb-layout { grid-template-columns: minmax(0, 1fr); }
-.wb-main { display: grid; gap: 16px; align-content: start; min-width: 0; }
+/* the views: tabs in the top bar, after the title "Omics Workbench" (the title itself is the overview) */
+.wb-tabs { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.wb-tabs a { padding: 6px 11px; border-radius: var(--radius); color: var(--text-2); font-weight: 600; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.wb-tabs a:hover { background: var(--surface-hover); color: var(--text); }
+.wb-tabs a.sel { background: var(--accent-soft); color: var(--accent-text); }
+.page-workbench .hubnav__title.sel { color: var(--accent-text); }
+.wb-main { display: grid; gap: 16px; align-content: start; min-width: 0; width: min(1240px, 100% - 32px); margin: 0 auto; padding: 24px 0 60px; }
 .wb-head h1 { margin: 0 0 6px; }
 .wb-head p { margin: 0; max-width: 860px; font-size: 13.5px; }
 .wb-card { padding: 16px 18px; display: grid; gap: 12px; }
@@ -113,7 +112,8 @@ button.wb-server:hover { border-color: var(--accent); }
 .wb-toast.show { opacity: 1; transform: translate(-50%, 0); }
 .small { font-size: 12px; }
 .pad { padding: 10px 14px; }
-@media (max-width: 860px) {
-  .wb-layout { grid-template-columns: minmax(0, 1fr); padding-top: 12px; }
-  .wb-nav { position: static; display: flex; flex-wrap: wrap; }
+@media (max-width: 760px) {
+  /* the shared top bar hides the page title on narrow screens; the tabs stay and scroll */
+  .wb-tabs a { padding: 6px 8px; }
+  .wb-main { padding-top: 14px; }
 }

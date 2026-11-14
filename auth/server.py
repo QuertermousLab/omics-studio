@@ -198,6 +198,12 @@ class AuthHandler(BaseHTTPRequestHandler):
             elif method == "GET" and path.startswith("/auth/") and path[len("/auth/"):] in STATIC:
                 name = path[len("/auth/"):]
                 self.send_body((WEB_DIR / name).read_bytes(), STATIC[name])
+            elif method == "GET" and path == "/auth/fonts/heading-serif.ttf":
+                face = APP_DIR.parent / "state" / "fonts" / "heading-serif.ttf"
+                if face.is_file():
+                    self.send_body(face.read_bytes(), "font/ttf")
+                else:
+                    self.send_json({"error": "Not found"}, 404)
             elif method == "GET" and re.fullmatch(r"/auth/fonts/[a-z0-9-]+\.woff2", path):
                 self.send_body((WEB_DIR / "fonts" / Path(path).name).read_bytes(), "font/woff2")
             elif path == "/admin" or path.startswith("/admin/"):

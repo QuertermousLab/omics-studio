@@ -27,12 +27,17 @@ for (const page of ['hub', 'viewer', 'crispr', 'workbench']) {
   const html = read(`pages/${page}.html`)
     .replace('<!--HEAD-->', head).replace('<!--NAV-->', nav)
     .replace(/<!--BODY:([\w.]+)-->/, (_, f) => read(`pages/${f}`))
-    .replaceAll('__BUILD__', version);
+    .replaceAll('__BUILD__', version)
+    // each part's icon: Omics Studio (home), Omics Workbench, Omics Canvas (the viewers)
+    .replaceAll('__ICON__', { hub: 'studio.svg', workbench: 'workbench.svg' }[page] ?? 'favicon.svg');
   writeFileSync(`${out}${page}.html`, html);
 }
-copyFileSync(new URL('pages/favicon.svg', import.meta.url), `${out}favicon.svg`);
+for (const icon of ['favicon.svg', 'studio.svg', 'workbench.svg']) copyFileSync(new URL(`pages/${icon}`, import.meta.url), `${out}${icon}`);
 // Genome Canvas's fonts (SIL OFL), so every page uses the same type
 const fonts = new URL('../../genome-canvas/vendor/fonts/', import.meta.url).pathname;
 mkdirSync(`${out}fonts`);
 for (const f of readdirSync(fonts)) copyFileSync(fonts + f, `${out}fonts/${f}`);
+// the heading face, when this server has it (state/fonts/: local, not in git); the pages fall back to Fraunces
+const heading = new URL('../../state/fonts/heading-serif.ttf', import.meta.url).pathname;
+try { copyFileSync(heading, `${out}fonts/heading-serif.ttf`); } catch { /* not on this server */ }
 console.log(`built ${version}: ${readdirSync(out).join(' ')}`);

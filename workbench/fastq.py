@@ -141,49 +141,70 @@ def find_controls(samples):
     return result
 
 
+# a 10x index name (SI-TT-E1, SI_3A_F8, SI-NA-A1) and a flowcell id (22W32GLT4, HMVT5BBXX) at the end of a FASTQ prefix
+INDEX_FLOWCELL = re.compile(r"(?:[-_.]SI[-_][A-Z0-9]{1,3}[-_][A-Z]\d{1,2})?(?:[-_.](?=[A-Z0-9]{9,10}$)(?=[A-Z0-9]*\d)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{9,10})?$")
+MERGED = re.compile(r"(?:^|[_\-.])(merged?|concat\w*|combined|cat)(?:[_\-.]|$)", re.I)
+
+
+def library_key(prefix):
+    """The library a FASTQ prefix belongs to: without the 10x index and the flowcell (several sequencing runs of one
+    library have the same key)."""
+    return INDEX_FLOWCELL.sub("", prefix) or prefix
+
+
 def group_10x(files):
-    """Cell Ranger samples: [{id, prefix, name, dirs: [folders], reads: sorted read types, size, kind_guess}]."""
+    """Cell Ranger libraries: [{id, key, name, prefix (comma-joined), dirs, parts: [{dir, prefix}], reads, size, files,
+    kind, merged, runs}]. The runs of one library (other flowcells, other folders) are one library; files in a folder
+    named merged / concatenated are a library of their own (the same reads again, not more of them)."""
     groups = OrderedDict()
     for f in files:
         folder, name = os.path.split(f["path"])
         m = ILLUMINA.match(name)
         if not m:
             continue
-        g = groups.setdefault(m["prefix"], {"prefix": m["prefix"], "dirs": [], "reads": set(), "size": 0, "files": 0})
-        if folder not in g["dirs"]:
-            g["dirs"].append(folder)
+        merged = any(MERGED.search(part) for part in folder.split("/")[-2:])
+        key = library_key(m["prefix"])
+        g = groups.setdefault((key, merged), {"key": key, "merged": merged, "parts": [], "reads": set(), "size": 0, "files": 0})
+        part = {"dir": folder, "prefix": m["prefix"]}
+        if part not in g["parts"]:
+            g["parts"].append(part)
         g["reads"].add(m["read"].upper())
         g["size"] += f["size"]
         g["files"] += 1
     out = []
     for i, g in enumerate(groups.values()):
-        reads = sorted(g["reads"])
-        text = (g["prefix"] + " " + " ".join(g["dirs"])).lower()
-        # ATAC libraries have R3 (or I2 + R1/R2/R3); GEX R1/R2; the name often says
-        if re.search(r"atac|arc_a|chromatin", text) or "R3" in g["reads"]:
-            kind = "atac"
-        elif re.search(r"gex|rna|_ge_|cdna", text):
-            kind = "gex"
-        else:
-            kind = "gex"
-        out.append({"id": "x{}".format(i + 1), "prefix": g["prefix"], "name": safe_name(g["prefix"]), "dirs": g["dirs"],
-                    "reads": reads, "size": g["size"], "files": g["files"], "kind": kind})
+        dirs = list(OrderedDict.fromkeys(p["dir"] for p in g["parts"]))
+        prefixes = list(OrderedDict.fromkeys(p["prefix"] for p in g["parts"]))
+        text = (g["key"] + " " + " ".join(dirs)).lower()
+        # ATAC libraries have R3 (or I2 + R1/R2/R3); GEX R1/R2; the name or the folder often says
+        kind = "atac" if re.search(r"atac|arc_a|chromatin", text) or "R3" in g["reads"] else "gex"
+        out.append({"id": "x{}".format(i + 1), "key": g["key"], "prefix": ",".join(prefixes),
+                    "name": safe_name(g["key"] + ("_merged" if g["merged"] else "")), "dirs": dirs, "parts": g["parts"],
+                    "reads": sorted(g["reads"]), "size": g["size"], "files": g["files"], "kind": kind,
+                    "merged": g["merged"], "runs": len(g["parts"])})
     return out
 
 
-def pair_multiome(samples):
-    """[(gex sample, atac sample)] matched by name once library words (GEX, ATAC, RNA, ARC) are removed."""
-    def base(s):
-        return re.sub(r"[_\-.]*(gex|atac|rna|arc|ge|ca|chromatin|expression)(?=[_\-.]|$)", "", s["prefix"], flags=re.I).strip("_-.")
+LIBRARY_WORDS = re.compile(r"[_\-.]*(gex|atac|rna|arc|ge|ca|chromatin|expression)(?=[_\-.]|$)", re.I)
 
-    def key(s):
-        return base(s).lower()
-    gex = [s for s in samples if s["kind"] == "gex"]
-    atac = [s for s in samples if s["kind"] == "atac"]
-    pairs, used = [], set()
-    for g in gex:
-        match = next((a for a in atac if a["id"] not in used and key(a) == key(g)), None)
+
+def pair_multiome(samples):
+    """[{gex, atac, name}] matched by library name once library words (GEX, ATAC, RNA, ARC) are removed; libraries
+    from merged folders are used only when there is no other."""
+    def base(s):
+        return LIBRARY_WORDS.sub("", s.get("key") or s["prefix"]).strip("_-.") or s.get("key") or s["prefix"]
+
+    def ranked(kind):
+        return sorted((s for s in samples if s["kind"] == kind), key=lambda s: s.get("merged", False))
+    atac = ranked("atac")
+    pairs, used, named = [], set(), set()
+    for g in ranked("gex"):
+        k = base(g).lower()
+        if k in named:
+            continue  # a merged copy of a library already paired
+        match = next((a for a in atac if a["id"] not in used and base(a).lower() == k), None)
         if match:
             used.add(match["id"])
-        pairs.append({"gex": g["id"], "atac": match["id"] if match else "", "name": safe_name(base(g) or g["prefix"])})
+        named.add(k)
+        pairs.append({"gex": g["id"], "atac": match["id"] if match else "", "name": safe_name(base(g))})
     return pairs

@@ -235,10 +235,12 @@ def singlecell_script(p, wrappers):
                     raise ValueError("{}: choose both its GEX and its ATAC library".format(n))
                 rows = ["fastqs,sample,library_type"]
                 for lib, kind in ((s["gex"], "Gene Expression"), (s["atac"], "Chromatin Accessibility")):
-                    for d in lib["dirs"]:
-                        if "," in d or "," in lib["prefix"]:
-                            raise ValueError("Folder and sample names cannot contain commas: {}".format(d))
-                        rows.append("{},{},{}".format(d, lib["prefix"], kind))
+                    # one row per sequencing run (folder and FASTQ prefix) of the library
+                    parts = lib.get("parts") or [{"dir": d, "prefix": x} for d in lib["dirs"] for x in lib["prefix"].split(",")]
+                    for part in parts:
+                        if "," in part["dir"] or "," in part["prefix"]:
+                            raise ValueError("Folder and sample names cannot contain commas: {}".format(part["dir"]))
+                        rows.append("{},{},{}".format(part["dir"], part["prefix"], kind))
                 csv = "libraries_{}.csv".format(n)
                 lines.append("printf '%s\\n' {} > {}".format(" ".join(q(r) for r in rows), q(csv)))
                 cmd = "bash \"$WRAP/cellranger.sh\" {} --id {} --libraries {}".format(" ".join(q(a) for a in common), q(n), q(csv))
