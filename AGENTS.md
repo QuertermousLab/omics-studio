@@ -31,7 +31,9 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
   never loads mod_http2, but the scan goes by the package version: reinstall Apache only at 2.4.71 or later and with
   the administrator's agreement. `VIZHUB_GATEWAY=auto` then runs
   `gateway/gateway.py` (Python, the same routes as `apache.conf.in`, keep both in step). It must keep adding
-  X-Forwarded-For: the backends treat requests from 127.0.0.1 without it as their own internal calls.
+  X-Forwarded-For: the backends treat requests from 127.0.0.1 without it as their own internal calls. The lab
+  dashboard (User-Agent `LabDashboard`, 10.130.73.73) checks the site every few seconds and is left out of the access
+  log (`QUIET_AGENTS` in gateway.py, `SetEnvIf … quiet` in apache.conf.in; the user's wish, 2026-11-16).
 - `auth/` (standard library, `auth/server.py` on 127.0.0.1:8895, `vizhub-auth.service`): sign-in (`/auth/`) and the admin
   page (`/admin/`); every backend checks the session cookie with `auth/sessions.py` while `VIZHUB_SIGN_IN=on`. See
   [auth/AGENTS.md](auth/AGENTS.md): never turn it off or open a route without the user's word.

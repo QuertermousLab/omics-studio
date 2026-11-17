@@ -25,10 +25,13 @@ LoadModule proxy_http_module @VIZHUB_APACHE_MODULES@/mod_proxy_http.so
 LoadModule proxy_wstunnel_module @VIZHUB_APACHE_MODULES@/mod_proxy_wstunnel.so
 LoadModule rewrite_module @VIZHUB_APACHE_MODULES@/mod_rewrite.so
 LoadModule alias_module @VIZHUB_APACHE_MODULES@/mod_alias.so
+LoadModule setenvif_module @VIZHUB_APACHE_MODULES@/mod_setenvif.so
 
 ErrorLog "@VIZHUB_DIR@/gateway/logs/error.log"
 LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
-CustomLog "@VIZHUB_DIR@/gateway/logs/access.log" combined
+# the lab dashboard checks the site every few seconds: not in the access log (gateway.py: QUIET_AGENTS)
+SetEnvIf User-Agent "^LabDashboard$" quiet
+CustomLog "@VIZHUB_DIR@/gateway/logs/access.log" combined env=!quiet
 LogLevel warn
 
 KeepAlive On

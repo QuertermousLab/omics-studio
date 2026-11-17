@@ -26,6 +26,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOP = {"connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailers", "transfer-encoding", "upgrade",
        "proxy-connection"}
+# requests left out of the access log: the lab dashboard (10.130.73.73) checks the site every few seconds
+QUIET_AGENTS = {"LabDashboard"}
 SLASHLESS = re.compile(r"^/(hub|spatial|single-cell|crispr|genome-canvas|great|admin|workbench)$")
 CHUNK = 256 * 1024
 TIMEOUT = 600  # ProxyTimeout 600
@@ -221,6 +223,9 @@ class Gateway(BaseHTTPRequestHandler):
         log = self.server.log
         if log is None:
             return
+        agent = self.headers.get("User-Agent", "") if self.headers else ""
+        if agent in QUIET_AGENTS:
+            return  # monitors that ask every few seconds (as apache.conf.in: SetEnvIf ... quiet)
         line = '{} - - [{}] "{}" {} {} "{}" "{}"\n'.format(
             self.client_ip(), time.strftime("%d/%b/%Y:%H:%M:%S %z"), self.requestline, code, size,
             self.headers.get("Referer", "-") if self.headers else "-", self.headers.get("User-Agent", "-") if self.headers else "-")

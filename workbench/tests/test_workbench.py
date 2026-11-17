@@ -340,6 +340,15 @@ class Gateway(unittest.TestCase):
         self.assertTrue(r.geturl().endswith("/great/"))
         with self.assertRaises(urllib.error.HTTPError):
             urllib.request.urlopen(base + "/lab")  # no JupyterLab configured
+        # the access log: the lab dashboard's checks are served but not written down
+        import io
+        g.log = io.StringIO()
+        urllib.request.urlopen(urllib.request.Request(base + "/", headers={"User-Agent": "LabDashboard"})).read()
+        urllib.request.urlopen(urllib.request.Request(base + "/", headers={"User-Agent": "Mozilla/5.0"})).read()
+        time.sleep(0.2)
+        lines = g.log.getvalue().splitlines()
+        self.assertEqual(len(lines), 1)
+        self.assertIn('"Mozilla/5.0"', lines[0])
         for b in backends.values():
             b.shutdown()
         g.shutdown()
