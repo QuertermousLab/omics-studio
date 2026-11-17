@@ -165,6 +165,21 @@ class ServerTests(unittest.TestCase):
         status, _, _, _ = self.request("POST", "/auth/api/logout", headers=jar)
         self.assertEqual(self.request("GET", "/auth/api/me", headers=jar)[0], 401)
 
+    def test_admin_logs(self):
+        import logs
+        self.httpd.logs = logs.Logs(self.httpd.store, self.temporary.name)  # an empty layout, never this checkout's logs
+        _, cookie, _, _ = self.sign_in("alice", "a-secret")
+        jar = {"Cookie": cookie.split(";")[0]}
+        status, _, payload, _ = self.request("GET", "/admin/api/logs", headers=jar)
+        self.assertEqual(status, 200)
+        signin = {i["id"]: i for i in payload["logs"]}["signin"]
+        self.assertEqual(signin["entries"], 1)  # alice's sign-in
+        status, _, payload, _ = self.request("POST", "/admin/api/logs/signin/clear", {}, jar)
+        self.assertEqual((status, payload["removed"]), (200, 1))
+        self.assertEqual(self.request("POST", "/admin/api/logs/nothing/clear", {}, jar)[0], 400)
+        _, bob, _, _ = self.sign_in("bob", "b-secret")
+        self.assertEqual(self.request("GET", "/admin/api/logs", headers={"Cookie": bob.split(";")[0]})[0], 403)
+
     def test_workspace_at_sign_in(self):
         # a THOR account opens in its Home workspace (Genome Canvas's id); access passwords and sign-outs choose again
         cookies = lambda response: response.msg.get_all("Set-Cookie")

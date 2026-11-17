@@ -26,6 +26,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+import logs as logs_module
 import rsa
 import sessions
 import verify
@@ -304,6 +305,13 @@ class AuthHandler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True})
             else:
                 raise KeyError("Not found")
+        elif route == "logs" and method == "GET":
+            self.send_json({"logs": self.server.logs.inventory()})
+        elif route and route.startswith("logs/") and method == "POST":
+            _, item, action = (route.split("/") + ["", ""])[:3]
+            result = self.server.logs.clean(item, action)
+            sys.stderr.write("admin {}: cleared log {} ({})\n".format(record["user"], item, action))
+            self.send_json(dict(result, logs=self.server.logs.inventory()))
         elif route and route.startswith("sessions/") and method == "DELETE":
             short_id = route.split("/", 1)[1]
             if short_id == own:
@@ -318,6 +326,7 @@ class AuthServer(ThreadingHTTPServer):
 
     def __init__(self, address, store, canvas_path="/genome-canvas/", home_root="/home"):
         self.store = store
+        self.logs = logs_module.Logs(store)
         self.canvas_path = "/" + canvas_path.strip("/") + "/" if canvas_path.strip("/") else "/"
         self.home_root = Path(home_root)
         self.key = rsa.KeyPair()

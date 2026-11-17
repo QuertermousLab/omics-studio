@@ -47,7 +47,7 @@ from the admin page ([auth/README.md](auth/README.md)); "keep me signed in" last
 | `/crispr/` · `/crispr/<screen>/` | Your CRISPR screens · the CRISPR screen explorer | hub |
 | `/genome-canvas/` | Genome Canvas | `genome-canvas/server.py` (127.0.0.1:8000) |
 | `/great/` | GREAT: page, API, rGREAT's `public/cgi-bin/*.php`, `rgreat.R` | `great/server.py` (127.0.0.1:8894, worker processes) |
-| `/auth/` · `/admin/` | Sign-in page · admin page (access passwords, sessions, sign-in, GREAT, servers and Workbench settings) | `auth/server.py` (127.0.0.1:8895) |
+| `/auth/` · `/admin/` | Sign-in page · admin page (access passwords, sessions, sign-in, GREAT, servers and Workbench settings, logs) | `auth/server.py` (127.0.0.1:8895) |
 | `/workbench/` | Omics Workbench: downloads, bulk and single-cell pipelines, jobs | `workbench/server.py` (127.0.0.1:8896) |
 | `/lab` and everything else | JupyterLab (its own sign-in) | `jupyter-lab.service` (127.0.0.1:8891) |
 

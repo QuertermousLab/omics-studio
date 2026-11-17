@@ -360,6 +360,13 @@ class App:
                 return {"servers": self.servers.save(b.get("servers") or [])}
             self.servers.viewed = time.time()
             return {"servers": self.servers.summary(), "interval": self.servers.interval}
+        if rest == ["history"] and method == "POST":
+            # Admin → Logs: forget the load history (two hours at most, in memory); the next samples start it again
+            self.require_admin(who)
+            with self.servers.lock:
+                samples = sum(len(h) for h in self.servers.history.values())
+                self.servers.history.clear()
+            return {"removed": samples}
         if rest == ["details"]:
             self.require_admin(who)
             return {"servers": self.servers.details(), "interval": self.servers.interval, "serviceUser": remote.SERVICE_USER}

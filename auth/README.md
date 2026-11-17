@@ -12,6 +12,7 @@ the server's files.
 | `sessions.py` | the session store and `Gate`, imported by every backend (hub, Genome Canvas, GREAT) to check the cookie |
 | `verify.py` | THOR account passwords: PAM through `pam_check`, or an SSH login to this machine until that is installed |
 | `pam_check.py`, `install-pam-helper.sh` | the root-owned PAM helper and its one-time installation |
+| `logs.py` | Admin → Logs: the logs of this checkout, their sizes, and clearing them |
 | `rsa.py`, `web/login.mjs` | the password is RSA-encrypted in the browser before it is sent (plain-HTTP sites) |
 | `web/` | `login.html`, `admin.html`, their scripts and styles (`base.css`, `fonts/`: Genome Canvas's look) |
 | `tests/` | `python3 -m unittest discover -s tests` (in CI) |
@@ -63,6 +64,13 @@ failed attempts appear in `/var/log/auth.log`. The admin page shows which check 
   may sign in (1000: no system accounts), an optional list of the only accounts allowed.
 - **Sign-in log**: the last 300 attempts (kept 180 days).
 - **GREAT**: GREAT's request limits and its stored results (`great/README.md`).
+- **Servers**, **Workbench**: the lab servers' load and list, Omics Workbench's settings (`workbench/README.md`).
+- **Logs** (`logs.py`, `/admin/api/logs`): each log with its size, entries and age, and what clearing does — the
+  gateway access log (clear, or keep the last 7 days; cut in place while the gateway goes on appending), the old
+  Apache logs, the sign-in log (clear, or keep 30 days; clearing also ends lockouts), the logs of finished conversions,
+  the job folders of finished shared downloads, the servers' load history (Workbench's memory,
+  `/workbench/api/servers/history`). Logs of running jobs are never touched. The system journal belongs to root: the
+  page shows its size and `sudo journalctl --vacuum-time=14d`.
 
 ## Turning it off
 

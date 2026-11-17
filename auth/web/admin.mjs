@@ -185,6 +185,48 @@ async function cleanup(action) {
   } catch (error) { $("#gr-store-message").textContent = error.message; }
 }
 
+// ---------------------------------------------------------------- logs
+
+const ACTIONS = { clear: "Clear", keep7: "Keep the last 7 days", keep30: "Keep the last 30 days", delete: "Delete", history: "Clear" };
+const size = (n) => (n === undefined || n === null ? "" : bytes(n));
+
+async function loadLogs() {
+  const { logs } = await call("/admin/api/logs");
+  // the servers' load history is kept by Omics Workbench, in memory
+  const wb = await call("/workbench/api/servers/details").catch(() => null);
+  if (wb) {
+    const samples = wb.servers.reduce((n, s) => n + (s.history?.length || 0), 0);
+    const first = Math.min(...wb.servers.map((s) => s.history?.[0]?.[0] ?? Infinity));
+    logs.splice(logs.length - 1, 0, { id: "monitor", name: "Servers' load history", path: "Omics Workbench (memory)",
+      detail: "The load samples behind the Servers tab's graphs: every 20 s per server, two hours at most, never written to disk.",
+      entries: samples, oldest: Number.isFinite(first) ? first : null, actions: samples ? ["history"] : [] });
+  }
+  renderLogs(logs);
+}
+
+function renderLogs(logs) {
+  $("#lg-table").innerHTML = `<thead><tr><th>Log</th><th>Where</th><th class="num">Size</th><th class="num">Entries</th><th>Since</th><th></th></tr></thead><tbody>
+    ${logs.map((l) => `<tr data-id="${esc(l.id)}"><td><b>${esc(l.name)}</b><div class="ad-muted">${esc(l.detail)}</div>
+      ${l.command ? `<div class="ad-muted">On THOR: <code>${esc(l.command)}</code></div>` : ""}</td>
+      <td><code>${esc(l.path)}</code></td><td class="num">${size(l.size)}</td><td class="num">${l.entries === undefined ? "" : number(l.entries)}</td>
+      <td>${l.oldest ? day(l.oldest) : "–"}</td>
+      <td>${(l.actions || []).map((a) => `<button class="quiet-button small${a.startsWith("keep") ? "" : " ad-danger"}" data-action="${a}">${ACTIONS[a]}</button>`).join("")}</td></tr>`).join("")}</tbody>`;
+  for (const button of $$("#lg-table [data-action]")) {
+    button.addEventListener("click", async () => {
+      const row = button.closest("tr");
+      const name = row.querySelector("b").textContent;
+      if (!confirm(`${ACTIONS[button.dataset.action]}: ${name}? This cannot be undone.`)) return;
+      try {
+        const result = row.dataset.id === "monitor"
+          ? await call("/workbench/api/servers/history", { method: "POST", body: "{}" })
+          : await call(`/admin/api/logs/${row.dataset.id}/${button.dataset.action}`, { method: "POST", body: "{}" });
+        $("#lg-message").textContent = `${name}: ${result.freed !== undefined ? `${size(result.freed)} freed` : `${number(result.removed)} entries removed`}.`;
+        await loadLogs();
+      } catch (error) { $("#lg-message").textContent = error.message; }
+    });
+  }
+}
+
 // ---------------------------------------------------------------- start
 
 // Servers and Workbench (admin-servers.mjs): Omics Workbench's API
@@ -195,6 +237,7 @@ function selectTab(name) {
   for (const tab of $$("[data-tab]")) tab.setAttribute("aria-selected", String(tab.dataset.tab === name));
   for (const panel of $$("[data-panel]")) panel.hidden = panel.dataset.panel !== name;
   if (name === "great") void loadGreat();
+  if (name === "logs") void loadLogs().catch((error) => { $("#lg-message").textContent = error.message; });
   tabLoaders[name]?.();
   history.replaceState(null, "", `#${name}`);
 }
@@ -231,4 +274,4 @@ for (const button of $$("[data-cleanup]")) button.addEventListener("click", () =
 for (const tab of $$("[data-tab]")) tab.addEventListener("click", () => selectTab(tab.dataset.tab));
 setInterval(() => { if (!$('[data-panel="great"]').hidden) void loadGreatStatus().catch(() => {}); }, 5000);
 await loadSignin().catch((error) => { document.querySelector(".ad-main").insertAdjacentHTML("afterbegin", `<p class="ad-danger">${esc(error.message)}</p>`); });
-selectTab(["#great", "#servers", "#workbench"].includes(location.hash) ? location.hash.slice(1) : "signin");
+selectTab(["#great", "#servers", "#workbench", "#logs"].includes(location.hash) ? location.hash.slice(1) : "signin");

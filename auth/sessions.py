@@ -288,6 +288,24 @@ class Store:
         with self.connect() as db:
             return [dict(r) for r in db.execute("SELECT * FROM log ORDER BY time DESC LIMIT ?", (limit,))]
 
+    def log_stats(self):
+        """(rows, time of the oldest) of the sign-in log."""
+        with self.connect() as db:
+            rows, first = db.execute("SELECT COUNT(*), MIN(time) FROM log").fetchone()
+        return rows, first
+
+    def clear_log(self, before=None):
+        """Remove the sign-in log (only rows older than `before` when given); returns how many rows went. Lockouts
+        count failed attempts in this log, so clearing it also ends them."""
+        with self.connect() as db:
+            if before is None:
+                removed = db.execute("DELETE FROM log").rowcount
+            else:
+                removed = db.execute("DELETE FROM log WHERE time < ?", (before,)).rowcount
+        with self.connect() as db:
+            db.execute("VACUUM")
+        return removed
+
     def locked(self, ip, user=None):
         """Seconds until a locked address (or account) may try again; 0 when it is not locked."""
         settings = self.settings()

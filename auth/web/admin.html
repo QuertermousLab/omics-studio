@@ -29,6 +29,7 @@
       <button type="button" data-tab="great" aria-selected="false">GREAT</button>
       <button type="button" data-tab="servers" aria-selected="false">Servers</button>
       <button type="button" data-tab="workbench" aria-selected="false">Workbench</button>
+      <button type="button" data-tab="logs" aria-selected="false">Logs</button>
     </nav>
 
     <section data-panel="signin">
@@ -128,6 +129,14 @@
           <div class="ad-actions"><button class="primary-button small" type="submit">Save</button><button class="secondary-button small" type="button" id="wb-mail-test">Send a test e-mail</button>
             <span class="ad-message" id="wb-message"></span></div>
         </form>
+      </div>
+    </section>
+    <section data-panel="logs" hidden>
+      <div class="ad-card">
+        <h2>Logs</h2>
+        <p>What the services write down, and how much space it takes. Clearing cannot be undone; logs of conversions and downloads that are still running are never touched.</p>
+        <div class="ad-table-wrap"><table class="ad-table" id="lg-table"></table></div>
+        <p class="ad-message" id="lg-message"></p>
       </div>
     </section>
   </main>
