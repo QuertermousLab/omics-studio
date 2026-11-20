@@ -785,10 +785,20 @@ button.liftover-locus:hover { text-decoration: underline; }
 .trackset-add-empty { padding: 8px 10px; color: var(--text-3); font-size: 12px; }
 
 /* AlphaGenome (alphagenome.mjs): the track library's card and the stage's "AG predict" */
-.ag-card { margin: 0 0 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: linear-gradient(180deg, var(--surface) 0, var(--surface-2) 100%); padding: 11px 11px 11px 12px; box-shadow: var(--shadow-sm); }
-.ag-head { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 11px; }
-.ag-head > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; }
-.ag-head strong { font-size: 13.5px; font-weight: 600; }
+/* the AlphaGenome button sits beside GREAT (each half a row; alone, the whole row) and opens its panel below */
+.source-actions:has(#ag-button:not([hidden])) .source-wide { grid-column: auto; }
+.source-actions:has(#great-button[hidden]) #ag-button { grid-column: 1 / -1; }
+.source-actions .ag-toggle { position: relative; }
+.source-actions .ag-toggle[aria-expanded="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
+.ag-dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--text-4); box-shadow: 0 0 0 2px var(--surface); }
+.ag-toggle[data-phase="ready"] .ag-dot { background: var(--success); }
+.ag-toggle[data-phase="starting"] .ag-dot, .ag-toggle[data-phase="stopping"] .ag-dot { background: var(--warning); animation: ag-pulse 1.2s ease-in-out infinite; }
+.ag-toggle[data-phase="unknown"] .ag-dot { background: var(--danger); }
+.ag-card { margin: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); padding: 10px 11px; box-shadow: var(--shadow-sm); animation: ag-open .14s ease-out; }
+@keyframes ag-open { from { opacity: 0; transform: translateY(-4px); } }
+.ag-head { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; }
+.ag-head > span:first-child { display: grid; gap: 2px; min-width: 0; }
+.ag-head strong { font-size: 12.5px; font-weight: 600; }
 .ag-head small { color: var(--text-3); font-size: 12px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ag-card[data-phase="ready"] .ag-head small { color: var(--green-text); }
 .ag-card[data-phase="starting"] .ag-head small, .ag-card[data-phase="stopping"] .ag-head small { color: var(--amber-text); }
@@ -825,6 +835,6 @@ button.liftover-locus:hover { text-decoration: underline; }
 .ag-predict-button:disabled { opacity: .5; cursor: not-allowed; }
 .ag-modal { width: min(480px, calc(100vw - 28px)); }
 .ag-dialog-content { display: grid; gap: 12px; }
-html[data-theme="dark"] .ag-card { background: var(--surface-3); }
+html[data-theme="dark"] .ag-card { background: var(--surface-2); }
 html[data-theme="dark"] .ag-switch span { background: var(--text-2); }
 html[data-theme="dark"] .ag-switch[aria-checked="true"] span { background: var(--on-accent); }

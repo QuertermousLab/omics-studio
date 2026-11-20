@@ -18,13 +18,13 @@
     })();
   </script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20261120.1">
+  <link rel="stylesheet" href="styles.css?v=20261120.3">
   <!-- Start the large engine download and the module graph in parallel with
        the stylesheet. Keep these hrefs identical to the import specifiers in
        app.js (including ?v=) so the preloaded responses are reused. -->
   <link rel="preload" href="vendor/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="vendor/igv.min.js?v=20261005-reference-cache" as="script">
-  <link rel="modulepreload" href="app.js?v=20261120.1">
+  <link rel="modulepreload" href="app.js?v=20261120.2">
   <link rel="modulepreload" href="workspace-chooser.mjs?v=20261113.1">
   <link rel="modulepreload" href="track-colors.mjs?v=20260821.4">
   <link rel="modulepreload" href="signal-style.mjs?v=20261007.2">
@@ -36,7 +36,7 @@
   <link rel="modulepreload" href="reference-resources.mjs?v=20261005.1">
   <link rel="modulepreload" href="highlights.mjs?v=20261012.3">
   <link rel="modulepreload" href="public-hubs.mjs?v=20260824.3">
-  <link rel="modulepreload" href="alphagenome.mjs?v=20261120.1">
+  <link rel="modulepreload" href="alphagenome.mjs?v=20261120.2">
 </head>
 <body class="workspace-pending">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -203,31 +203,30 @@
             <button id="liftover-button" type="button" title="Convert regions or track files between genome builds (hg19 ↔ hg38, mm10 ↔ mm39)"><svg class="icon" aria-hidden="true"><use href="#i-swap"/></svg>Liftover</button>
             <button id="locuscompare-button" type="button" title="LocusCompare: a GWAS track in view against GTEx eQTLs, colored by LD (also in a GWAS track's right-click menu)"><svg class="icon" aria-hidden="true"><use href="#i-scatter"/></svg>LocusCompare</button>
             <button id="great-button" class="source-wide" type="button" hidden title="GREAT: GO terms and phenotypes enriched near a set of regions (also in a region track's right-click menu)"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg>GREAT</button>
+            <button id="ag-button" class="ag-toggle" type="button" hidden aria-expanded="false" aria-controls="ag-card" title="AlphaGenome: start / stop the model, choose cell type and outputs, predict this view"><svg class="icon" aria-hidden="true"><use href="#i-dna"/></svg>AlphaGenome<i class="ag-dot" aria-hidden="true"></i></button>
           </div>
+          <section class="ag-card" id="ag-card" hidden aria-label="AlphaGenome">
+            <div class="ag-head">
+              <span><strong>Model on the GPU server</strong><small id="ag-state">Checking…</small></span>
+              <button class="ag-switch" id="ag-power" type="button" role="switch" aria-checked="false" aria-label="AlphaGenome on the GPU server" title="Start or stop AlphaGenome on the GPU server (the GPUs are free while it is off)"><span></span></button>
+            </div>
+            <div class="ag-body" id="ag-body" hidden>
+              <div class="ag-backend" role="group" aria-label="Prediction backend">
+                <button type="button" data-ag-backend="ag1" aria-pressed="true" title="AlphaGenome 1 on the lab's GPUs, with the coronary smooth muscle models">AG1 · local</button>
+                <button type="button" data-ag-backend="ag2" aria-pressed="false" title="AlphaGenome 2 through Google's API (the lab account's quota)">AG2 · API</button>
+              </div>
+              <label class="ag-field"><span>Cell / tissue</span>
+                <input id="ag-biosample-filter" type="search" placeholder="Filter, e.g. smooth muscle, liver, CL:" autocomplete="off" spellcheck="false">
+                <select id="ag-biosample" aria-label="Cell or tissue"></select></label>
+              <div class="ag-tracks" id="ag-tracks" aria-label="Predicted outputs"></div>
+              <div class="ag-actions">
+                <button class="primary-button small" id="ag-predict-view" type="button" disabled title="Predict the chosen outputs for the current view (up to 524 kb)">Predict this view</button>
+                <a class="ag-manage" href="/alphagenome/studio/" target="_blank" rel="noopener" title="AlphaGenome's page: GPU memory, who uses it, AlphaGenome Atlas">Manage</a>
+              </div>
+              <p class="ag-note" id="ag-note" role="status"></p>
+            </div>
+          </section>
         </div>
-
-        <section class="ag-card" id="ag-card" hidden aria-label="AlphaGenome">
-          <div class="ag-head">
-            <span class="source-glyph ag-glyph" aria-hidden="true"><svg class="icon"><use href="#i-dna"/></svg></span>
-            <span><strong>AlphaGenome</strong><small id="ag-state">Checking…</small></span>
-            <button class="ag-switch" id="ag-power" type="button" role="switch" aria-checked="false" aria-label="AlphaGenome on the GPU server" title="Start or stop AlphaGenome on the GPU server (the GPUs are free while it is off)"><span></span></button>
-          </div>
-          <div class="ag-body" id="ag-body" hidden>
-            <div class="ag-backend" role="group" aria-label="Prediction backend">
-              <button type="button" data-ag-backend="ag1" aria-pressed="true" title="AlphaGenome 1 on the lab's GPUs, with the coronary smooth muscle models">AG1 · local</button>
-              <button type="button" data-ag-backend="ag2" aria-pressed="false" title="AlphaGenome 2 through Google's API (the lab account's quota)">AG2 · API</button>
-            </div>
-            <label class="ag-field"><span>Cell / tissue</span>
-              <input id="ag-biosample-filter" type="search" placeholder="Filter, e.g. smooth muscle, liver, CL:" autocomplete="off" spellcheck="false">
-              <select id="ag-biosample" aria-label="Cell or tissue"></select></label>
-            <div class="ag-tracks" id="ag-tracks" aria-label="Predicted outputs"></div>
-            <div class="ag-actions">
-              <button class="primary-button small" id="ag-predict-view" type="button" disabled title="Predict the chosen outputs for the current view (up to 524 kb)">Predict this view</button>
-              <a class="ag-manage" href="/alphagenome/studio/" target="_blank" rel="noopener" title="AlphaGenome's page: GPU memory, who uses it, AlphaGenome Atlas">Manage</a>
-            </div>
-            <p class="ag-note" id="ag-note" role="status"></p>
-          </div>
-        </section>
 
         <div class="track-section-heading">
           <span>Current view</span>
@@ -617,6 +616,6 @@
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
   <script defer src="vendor/igv.min.js?v=20261005-reference-cache"></script>
-  <script type="module" src="app.js?v=20261120.1"></script>
+  <script type="module" src="app.js?v=20261120.2"></script>
 </body>
 </html>

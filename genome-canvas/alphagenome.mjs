@@ -65,18 +65,18 @@ export function modelWindow(chromosome, start, end, backend = "ag1") {
  */
 export function installAlphaGenome(ctx) {
   const ui = {
-    card: $("#ag-card"), power: $("#ag-power"), state: $("#ag-state"), body: $("#ag-body"),
+    toggle: $("#ag-button"), card: $("#ag-card"), power: $("#ag-power"), state: $("#ag-state"), body: $("#ag-body"),
     backends: [...document.querySelectorAll("[data-ag-backend]")], filter: $("#ag-biosample-filter"),
     biosample: $("#ag-biosample"), tracks: $("#ag-tracks"), predictView: $("#ag-predict-view"), note: $("#ag-note"),
     stageButton: $("#ag-predict-button"), dialog: $("#ag-dialog"), rsid: $("#ag-rsid"), alleles: $("#ag-alleles"),
     go: $("#ag-rsid-go"), dialogStatus: $("#ag-dialog-status"), dialogTracks: $("#ag-dialog-tracks"),
   };
-  if (!ui.card) return;
+  if (!ui.card || !ui.toggle) return;
   const saved = stored();
   const s = {
     available: false, phase: "unknown", status: null, backend: saved.backend === "ag2" ? "ag2" : "ag1",
     catalogs: {}, selected: saved.tracks || {}, biosample: saved.biosample || {}, busy: false, loaded: [],
-    watchedUntil: 0, resolved: null,
+    watchedUntil: 0, resolved: null, expanded: false,
   };
 
   // ---------------------------------------------------------------- the model's state
@@ -103,7 +103,12 @@ export function installAlphaGenome(ctx) {
   const LABEL = { ready: "Running", starting: "Starting… (1–4 min)", stopping: "Stopping…", stopped: "Off · GPUs free", unknown: "Unreachable" };
 
   function render() {
-    ui.card.hidden = !s.available;
+    // the button beside GREAT; its panel opens below it on a click (closed when the page opens)
+    ui.toggle.hidden = !s.available;
+    ui.toggle.dataset.phase = s.phase;
+    ui.toggle.setAttribute("aria-expanded", String(s.expanded && s.available));
+    ui.toggle.title = `AlphaGenome · ${LABEL[s.phase] || s.phase}: start / stop the model, choose cell type and outputs, predict this view`;
+    ui.card.hidden = !(s.available && s.expanded);
     const ready = s.phase === "ready";
     const hg38 = /^hg38$/i.test(ctx.genome() || "");
     ui.power.setAttribute("aria-checked", String(ready || s.phase === "starting"));
@@ -117,7 +122,7 @@ export function installAlphaGenome(ctx) {
     ui.predictView.disabled = !can;
     ui.stageButton.disabled = !(ready && hg38);
     ui.stageButton.title = !s.available ? "AlphaGenome is not available here"
-      : !ready ? "Start AlphaGenome in the track library first (AlphaGenome card)"
+      : !ready ? "Start AlphaGenome first: the AlphaGenome button in the track library, beside GREAT"
         : !hg38 ? "AlphaGenome predicts on GRCh38 (hg38) only"
           : "AlphaGenome: an rsID's effect (REF, ALT, ALT − REF) on the chosen tracks";
     if (!hg38 && ready) note("AlphaGenome predicts on GRCh38: switch the genome to hg38.", true);
@@ -127,6 +132,13 @@ export function installAlphaGenome(ctx) {
     ui.note.textContent = text || "";
     ui.note.classList.toggle("error", Boolean(error));
   }
+
+  ui.toggle.addEventListener("click", () => {
+    s.expanded = !s.expanded;
+    if (s.expanded) s.watchedUntil = Date.now() + 2 * 60_000;
+    render();
+    if (s.expanded) refresh();
+  });
 
   ui.power.addEventListener("click", async () => {
     const on = ui.power.getAttribute("aria-checked") === "true";

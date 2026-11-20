@@ -179,7 +179,8 @@ clinical use.
   biosample and tracks on the left, then **Run prediction**. For a variant, fill in position / REF / ALT, or resolve
   an rsID, and switch the view between REF, ALT and Δ at the top right. **AlphaGenome** at its top left goes back to the
   start / stop page, **Omics Studio** to the home page.
-- **In Genome Canvas** (hg38): the track library's **AlphaGenome** card has the same on / off switch. When it is on,
+- **In Genome Canvas** (hg38): the **AlphaGenome** button beside GREAT in the track library (its dot: green running,
+  amber starting, grey off) opens a panel with the same on / off switch. When it is on,
   choose **AG1 · local** (the lab's GPUs, with the smooth muscle models) or **AG2 · API** (Google's AlphaGenome 2), a
   cell type (default: coronary artery smooth muscle cells) and its outputs. **Predict this view** adds them as
   `AG · …` tracks for the region in view (up to 524 kb). **AG predict** above the tracks (grey while AlphaGenome is
