@@ -71,8 +71,9 @@ browser ── gateway :8892 ── alphagenome/server.py :8897 (THOR)
   does not find them under a basePath in this Cloudflare-plugin build. Command-line
   clients and batch scripts keep using the root (`/v1/…`, `/healthz`). An SSH tunnel's `http://127.0.0.1:18080/` still
   works: it leads to `/alphagenome/`.
-- The Atlas uses Genome Canvas's Nord theme, light and dark, and follows the same saved choice. It is set in the
-  system font. Its header has a theme toggle and a **Start / stop** link, which only appears through Omics Studio.
+- The Atlas uses Genome Canvas's layout (top bar, track rail, stage chrome row, status bar) and Nord theme, light and
+  dark, following the same saved choice, in the system font. At the top left, **Omics Studio** (home) and
+  **AlphaGenome** (this module's start / stop page) appear only when it is opened through Omics Studio.
   Data colours (tracks, REF / ALT / Δ, motif letters) are unchanged.
 - After changing the Atlas, rebuild it in `ui/` (`npm run build`). Then restart its web services on each server that
   runs it: `remote.sh restart-web` (or `deploy/restart.sh` there). The GPU workers keep running.

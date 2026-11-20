@@ -8,7 +8,7 @@ User documentation: [README.md](README.md). The repository rules in [../AGENTS.m
   `web/`: the control page (Genome Canvas's tokens).
 - AlphaGenome itself is `~/baldar/alphagenome`, the lab's own project (not a git repository; its guide is
   `deploy/README.md`). Changes there for Omics Studio: basePath `/alphagenome` (`ui/next.config.ts`, `ui/app/base-path.ts`,
-  `UI_BASE_PATH` in `deploy/proxy.py`), the Nord theme, the Start / stop link. Keep the three base-path places in step (the proxy also serves `/alphagenome/_next/` itself: vinext's server
+  `UI_BASE_PATH` in `deploy/proxy.py`), Genome Canvas's layout and Nord theme, the Omics Studio / AlphaGenome buttons (`ui/app/StudioLink.tsx`). Keep the three base-path places in step (the proxy also serves `/alphagenome/_next/` itself: vinext's server
   misses assets under basePath in this build).
   Never rebuild its `ui/dist` without restarting its web services afterwards (`remote.sh restart-web`): a running Atlas
   serves its assets from that folder. CHAMPAGNE shares the folder.

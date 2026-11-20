@@ -177,8 +177,8 @@ clinical use.
   AlphaGenome Atlas**.
 - **In the Atlas**, type a locus, a gene (`APOL1`, `ENSG…`) or an rsID (`rs429358`) in the locus box. Choose the
   biosample and tracks on the left, then **Run prediction**. For a variant, fill in position / REF / ALT, or resolve
-  an rsID, and switch the view between REF, ALT and Δ at the top right. **Start / stop** in its header goes back to
-  the control page.
+  an rsID, and switch the view between REF, ALT and Δ at the top right. **AlphaGenome** at its top left goes back to the
+  start / stop page, **Omics Studio** to the home page.
 - **In Genome Canvas** (hg38): the track library's **AlphaGenome** card has the same on / off switch. When it is on,
   choose **AG1 · local** (the lab's GPUs, with the smooth muscle models) or **AG2 · API** (Google's AlphaGenome 2), a
   cell type (default: coronary artery smooth muscle cells) and its outputs. **Predict this view** adds them as
