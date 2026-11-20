@@ -1,7 +1,7 @@
 // "Export & plots" in the spatial and single-cell viewers: the expression of chosen genes in chosen cells as a file
 // (hub: /hub/api/datasets/<id>/matrix, expression.py), and one gene's or module score's distribution per group as a
 // violin or ridge plot (/hub/api/datasets/<id>/distribution: densities computed on the server, drawn here as SVG).
-import { esc } from './common';
+import { esc, figureBlob, toast } from './common';
 import type { Viewer } from './spatial/viewer';
 
 export interface ExpressionContext {
@@ -259,23 +259,17 @@ export function mountExpression(ctx: ExpressionContext) {
         <div class="expr-plot__fig" data-expr-fig></div>
         <div class="ws-foot"><button type="button" class="btn btn--light btn--sm" data-expr-svg>SVG</button>
           <button type="button" class="btn btn--light btn--sm" data-expr-png>PNG</button>
+          <button type="button" class="btn btn--light btn--sm" data-expr-pdf>PDF</button>
           <button type="button" class="btn btn--light btn--sm" data-expr-stats title="Cells, cells above 0, mean and quartiles per group">Table (CSV)</button>
           <button type="submit" class="btn btn--quiet btn--sm">Close</button></div></form>`;
       document.body.append(dlg);
       const name = () => `${ctx.dataset}_${ctx.sample()}_${last!.d.label.replace(/[^\w.-]+/g, '_')}_${last!.type}`;
       $('svg').onclick = () => last && ctx.save(new Blob([plotSvg(last.d, last.type, last.colors, ctx.ink(), last.points)], { type: 'image/svg+xml' }), `${name()}.svg`);
-      $('png').onclick = async () => {
+      for (const format of ['png', 'pdf'] as const) $(format).onclick = async () => {
         if (!last) return;
         const svg = plotSvg(last.d, last.type, last.colors, ctx.ink(), last.points);
-        const img = new Image();
-        img.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-        await img.decode();
-        const c = Object.assign(document.createElement('canvas'), { width: img.width * 3, height: img.height * 3 });
-        const g = c.getContext('2d')!;
-        g.scale(3, 3);
-        g.drawImage(img, 0, 0);
-        URL.revokeObjectURL(img.src);
-        c.toBlob((b) => b && ctx.save(b, `${name()}.png`), 'image/png');
+        try { ctx.save(await figureBlob(svg, format, { scale: 3, title: last.d.label }), `${name()}.${format}`); }
+        catch (e) { toast(`Could not save the ${format.toUpperCase()}: ${esc((e as Error).message)}`); }
       };
       $('stats').onclick = () => {
         if (!last) return;

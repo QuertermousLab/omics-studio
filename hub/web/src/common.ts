@@ -56,6 +56,15 @@ interface ChooserModule {
   watchWorkspace(currentId: () => string | null | undefined, onChange: (w: Workspace | null) => void): void;
 }
 const CHOOSER_URL = '/genome-canvas/workspace-chooser.mjs?v=20261113.1';
+// Figure export (SVG, PNG, vector PDF), shared with Genome Canvas and GREAT: also served by Genome Canvas.
+const FIGURE_URL = '/genome-canvas/figure-export.mjs?v=20261120.1';
+interface FigureModule { figureBlob(svg: string, format: string, options?: { scale?: number; title?: string }): Promise<Blob> }
+let figureModule: Promise<FigureModule> | null = null;
+/** An SVG figure as a file: "svg", "png" (at `scale`, transparent) or "pdf" (vector). */
+export async function figureBlob(svg: string, format: 'svg' | 'png' | 'pdf', options: { scale?: number; title?: string } = {}) {
+  figureModule ??= import(/* not bundled: served by Genome Canvas */ FIGURE_URL as string) as Promise<FigureModule>;
+  return (await figureModule).figureBlob(svg, format, options);
+}
 let chooserModule: Promise<ChooserModule> | null = null;
 const chooser = () => (chooserModule ??= import(/* not bundled: served by Genome Canvas */ CHOOSER_URL as string) as Promise<ChooserModule>);
 
@@ -135,9 +144,10 @@ export function initChrome(navId: string) {
   // Omics Canvas desktop app (desktop/): the native window calls these and listens to postToDesktop
   (window as any).VizHubDesktop = {
     setTheme(theme: string) { applyTheme(theme === 'dark' ? 'dark' : 'light'); return true; },
-    exportPNG() {
-      // only on a page that shows a plot (the dataset pages keep the viewer's markup hidden)
-      const b = document.querySelector<HTMLElement>('[data-shot]');
+    exportPNG() { return (window as any).VizHubDesktop.exportFigure('png'); },
+    /** "png" | "svg" | "pdf"; false when the page shows no plot (the dataset pages keep the viewer's markup hidden) */
+    exportFigure(format: string) {
+      const b = document.querySelector<HTMLElement>(`[data-shot="${format === 'svg' || format === 'pdf' ? format : 'png'}"]`);
       if (!b || b.offsetParent === null) return false;
       b.click();
       return true;

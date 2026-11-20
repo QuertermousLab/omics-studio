@@ -1,7 +1,7 @@
 
   // Spatial / single-cell viewer page: the <script> of QuertermousLab/athena src/components/SpatialViewer.astro,
   // adapted to the hub (dataset in the URL path, /hub/api/projects, no Cloudflare Access sign-in).
-  import { css, esc, initChrome, loadWorkspace, workspace } from './common';
+  import { css, esc, figureBlob, initChrome, loadWorkspace, toast, workspace } from './common';
   import { mountManager } from './manager';
   import { bindShared, sharedCard } from './shared';
   import { mountExpression } from './expression-panel';
@@ -670,7 +670,15 @@
     v.setTool(b.dataset.tool as Tool);
   }));
   $('fit').onclick = () => v.fit();
-  $('shot').onclick = async () => save(await v.screenshot(ink), `${projectId}_${slideId}.png`);
+  document.querySelectorAll<HTMLButtonElement>('[data-shot]').forEach((b) => (b.onclick = async () => {
+    const format = (b.dataset.shot || 'png') as 'png' | 'svg' | 'pdf';
+    try {
+      const blob = format === 'png' ? await v.screenshot(ink) : await figureBlob(v.figureSvg(ink), format, { title: `${projectId} ${slideId}` });
+      save(blob, `${projectId}_${slideId}.${format}`);
+    } catch (e) {
+      toast(`Could not save the ${format.toUpperCase()}: ${esc((e as Error).message)}`);
+    }
+  }));
   const slideHref = (p: string, s: string) => `/${kindPath}/${encodeURIComponent(p)}/?s=${encodeURIComponent(s)}`;
   $<HTMLSelectElement>('slide').onchange = (e) => {
     const [p, s] = (e.target as HTMLSelectElement).value.split('\n');

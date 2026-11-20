@@ -459,6 +459,28 @@ open_png <- function(file, width, height) {
   grDevices::png(file, width = width, height = height, units = "in", res = 130, type = "cairo", family = "Arial", bg = "white")
 }
 
+# Every figure is drawn three times: the PNG the job's page shows, and SVG and PDF (vector) beside it with the same
+# name. draw() makes the plot on the open device. A failed SVG or PDF is reported and skipped; a failed PNG stops.
+draw_figure <- function(file, width, height, draw) {
+  base <- sub("\\.png$", "", file)
+  devices <- list(
+    png = function() open_png(file, width, height),
+    svg = function() if (requireNamespace("svglite", quietly = TRUE))
+        svglite::svglite(paste0(base, ".svg"), width = width, height = height, bg = "white", system_fonts = list(sans = "Arial"))
+      else grDevices::svg(paste0(base, ".svg"), width = width, height = height, family = "Arial", bg = "white"),
+    pdf = function() if (capabilities("cairo"))
+        grDevices::cairo_pdf(paste0(base, ".pdf"), width = width, height = height, family = "Arial", bg = "white")
+      else grDevices::pdf(paste0(base, ".pdf"), width = width, height = height, family = "Helvetica", bg = "white", useDingbats = FALSE))
+  for (kind in names(devices)) {
+    ok <- tryCatch({
+      devices[[kind]]()
+      tryCatch(draw(), finally = grDevices::dev.off())
+      TRUE
+    }, error = function(e) { if (kind == "png") stop(e); say("  ", basename(base), ".", kind, " not written: ", conditionMessage(e)); FALSE })
+  }
+  invisible(file)
+}
+
 plot_qc <- function(d, th, pass, file) {
   t <- as.list(th)
   panels <- list()
@@ -475,8 +497,7 @@ plot_qc <- function(d, th, pass, file) {
     panels$frip <- list("FRiP", t$FRiP_min, NA, FALSE, sprintf("FRiP > %s%%", fmt_b(t$FRiP_min)), "Fragments in peaks (%)")
   }
   nc <- if (length(panels) <= 4) length(panels) else if (length(panels) == 8) 4 else 3; nr <- ceiling(length(panels) / nc)
-  open_png(file, 4.6 * nc, 4 * nr + 1.1)
-  on.exit(grDevices::dev.off())
+  draw_figure(file, 4.6 * nc, 4 * nr + 1.1, function() {
   graphics::par(mfrow = c(nr, nc), mar = c(4.6, 4.6, 3.2, 1), oma = c(0, 0, 4.6, 0), cex = 1.05,
                 cex.main = 1.1, cex.lab = 1.05, cex.axis = 0.95)
   for (i in seq_along(panels)) { p <- panels[[i]]
@@ -488,6 +509,7 @@ plot_qc <- function(d, th, pass, file) {
   graphics::legend(0.5, 1 - 0.8 / (4 * nr + 1.1), xjust = 0.5, yjust = 0.5, horiz = TRUE, bty = "n", lty = c(1, 1, 2), lwd = 2.5, cex = 1.05,
                    col = c("#8c8c8c", "#1878a0", "#c34a36"), c(sprintf("All cells (%s)", fmt(length(pass))),
                    sprintf("Cells passing every threshold (%s)", fmt(sum(pass))), "Proposed threshold"))
+  })
 }
 
 write_tsv <- function(x, path) {
@@ -861,7 +883,7 @@ theme_wb <- function() ggplot2::theme(text = ggplot2::element_text(family = "Ari
                                       plot.title = ggplot2::element_text(size = 18, face = "bold"))
 
 save_gg <- function(p, file, width, height) {
-  open_png(file, width, height); on.exit(grDevices::dev.off()); print(p); invisible(file)
+  draw_figure(file, width, height, function() print(p))
 }
 
 umap_plot <- function(obj, red, group, title, label = TRUE) {

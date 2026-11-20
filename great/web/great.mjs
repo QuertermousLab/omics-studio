@@ -12,6 +12,8 @@ const appURL = (path) => new URL(`${CANVAS}${path}`, location.href).toString();
 // Omics Canvas's workspace chooser and manager, served by Genome Canvas (the same window in every module)
 let chooserModule = null;
 const chooser = () => (chooserModule ??= import(appURL("workspace-chooser.mjs?v=20261113.1")));
+let figureModule = null;
+const figureExport = () => (figureModule ??= import(appURL("figure-export.mjs?v=20261120.1")));
 
 const ASSEMBLY_NAMES = {
   hg38: ["Human", "GRCh38 (hg38)"], hg19: ["Human", "GRCh37 (hg19)"],
@@ -703,28 +705,21 @@ function barChart({ title, categories, series, xLabel, yLabel, width = 420, heig
 function chartBox(name, svg) {
   const box = document.createElement("figure");
   box.className = "gr-chart";
-  box.innerHTML = `${svg}<figcaption><button type="button" class="quiet-button small" data-kind="svg">SVG</button><button type="button" class="quiet-button small" data-kind="png">PNG</button></figcaption>`;
+  box.innerHTML = `${svg}<figcaption><button type="button" class="quiet-button small" data-kind="svg">SVG</button><button type="button" class="quiet-button small" data-kind="png">PNG</button><button type="button" class="quiet-button small" data-kind="pdf">PDF</button></figcaption>`;
   for (const button of $$("button", box)) button.addEventListener("click", () => exportChart($("svg", box), name, button.dataset.kind));
   return box;
 }
 
-function exportChart(svg, name, kind) {
+async function exportChart(svg, name, kind) {
   // exports use the light palette on a transparent background, as every Genome Canvas figure
   const text = new XMLSerializer().serializeToString(svg).replace('fill="currentColor"', 'fill="#2e3440"').replaceAll('stroke="currentColor"', 'stroke="#2e3440"');
   if (kind === "svg") { download(new Blob([text], { type: "image/svg+xml" }), `${name}.svg`); return; }
-  const image = new Image();
-  const width = Number(svg.getAttribute("width"));
-  const height = Number(svg.getAttribute("height"));
-  image.onload = () => {
-    const canvas = document.createElement("canvas");
-    canvas.width = width * 3;
-    canvas.height = height * 3;
-    const context = canvas.getContext("2d");
-    context.scale(3, 3);
-    context.drawImage(image, 0, 0, width, height);
-    canvas.toBlob((blob) => blob && download(blob, `${name}.png`), "image/png");
-  };
-  image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
+  try {
+    const { figureBlob } = await figureExport();
+    download(await figureBlob(text, kind, { scale: 3, title: name }), `${name}.${kind}`);
+  } catch (error) {
+    toast(`Could not export ${kind.toUpperCase()}: ${error.message}`, "error");
+  }
 }
 
 // ---------------------------------------------------------------- term details

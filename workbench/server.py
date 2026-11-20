@@ -677,7 +677,8 @@ class App:
         if action == "file":
             name = query.get("name") or ""
             data = self.jobs.read_file(job, name, limit=20 * 2**20)
-            types = {".png": "image/png", ".svg": "image/svg+xml", ".json": "application/json", ".html": "text/html; charset=utf-8"}
+            types = {".png": "image/png", ".svg": "image/svg+xml", ".pdf": "application/pdf", ".json": "application/json",
+                     ".html": "text/html; charset=utf-8"}
             ctype = types.get(Path(name).suffix.lower(), "text/plain; charset=utf-8")
             if ctype.startswith("text/html"):
                 ctype = "text/plain; charset=utf-8"  # never render job output as a page of this site

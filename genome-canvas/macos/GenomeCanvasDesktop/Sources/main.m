@@ -890,7 +890,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     self.highlightColorWell.toolTip = @"Highlight color";
     self.clearHighlightsButton = [self toolButton:@"eraser" tip:@"Clear highlights" action:@selector(clearHighlights:)];
     self.clearHighlightsButton.enabled = NO;
-    GCButton *exportButton = [self toolButton:@"photo" tip:@"Export PNG" action:@selector(exportPNG:)];
+    GCButton *exportButton = [self toolButton:@"photo" tip:@"Export the canvas: PNG, SVG or PDF" action:@selector(showExportMenu:)];
     // the web stage's AG predict: grey until AlphaGenome runs (and the genome is hg38); server mode only
     self.agPredictButton = [GCButton buttonWithLabel:@"AG predict" symbol:@"waveform.path.ecg" style:GCButtonStyleTool target:self action:@selector(openAlphaGenomePredict:)];
     self.agPredictButton.font = GCUIFont(12.5, 550);
@@ -1281,6 +1281,13 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     export.target = self;
     export.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagShift;
     [fileMenu addItem:export];
+    NSMenuItem *exportSVG = [[NSMenuItem alloc] initWithTitle:@"Export SVG…" action:@selector(exportSVG:) keyEquivalent:@""];
+    exportSVG.target = self;
+    [fileMenu addItem:exportSVG];
+    NSMenuItem *exportPDF = [[NSMenuItem alloc] initWithTitle:@"Export PDF…" action:@selector(exportPDF:) keyEquivalent:@"e"];
+    exportPDF.target = self;
+    exportPDF.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagShift | NSEventModifierFlagOption;
+    [fileMenu addItem:exportPDF];
     fileItem.submenu = fileMenu;
     [mainMenu addItem:fileItem];
 
@@ -1851,7 +1858,22 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
 }
 - (void)saveTrackset:(id)sender { if (!self.localMode) [self callDesktopMethod:@"saveTracksetFromView" arguments:@[]]; }
 - (void)shareView:(id)sender { [self callDesktopMethod:@"share" arguments:@[]]; }
-- (void)exportPNG:(id)sender { [self callDesktopMethod:@"exportPNG" arguments:@[]]; }
+// PNG, SVG or PDF of the canvas: the page renders it and saves it as a download (the save panel)
+- (void)exportFigure:(NSString *)format { [self callDesktopMethod:@"exportFigure" arguments:@[format]]; }
+// the toolbar's export button: a menu of the three formats under it
+- (void)showExportMenu:(NSButton *)sender {
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@"Export"];
+    for (NSArray<NSString *> *entry in @[@[@"PNG (transparent background)", @"png"], @[@"SVG (vector)", @"svg"], @[@"PDF (vector)", @"pdf"]]) {
+        NSMenuItem *item = [menu addItemWithTitle:entry[0] action:@selector(exportFigureFromMenu:) keyEquivalent:@""];
+        item.target = self;
+        item.representedObject = entry[1];
+    }
+    [menu popUpMenuPositioningItem:nil atLocation:NSMakePoint(0, sender.isFlipped ? NSHeight(sender.bounds) + 4 : -4) inView:sender];
+}
+- (void)exportFigureFromMenu:(NSMenuItem *)sender { [self exportFigure:sender.representedObject ?: @"png"]; }
+- (void)exportPNG:(id)sender { [self exportFigure:@"png"]; }
+- (void)exportSVG:(id)sender { [self exportFigure:@"svg"]; }
+- (void)exportPDF:(id)sender { [self exportFigure:@"pdf"]; }
 - (void)removeSelectedTrack:(id)sender { NSInteger row = self.trackTable.selectedRow; if (row >= 0) [self callDesktopMethod:@"removeTrack" arguments:@[@(row)]]; }
 
 // the server's sign-in (auth/): end this session; the sign-in page opens in the window and leads back to the canvas

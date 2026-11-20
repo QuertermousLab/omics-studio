@@ -86,7 +86,7 @@ whether each service is online and how many datasets your workspace has in each 
   - The lead SNP is the one with the smallest sum of the two p-values. **Click a point** to make it the lead.
   - GWAS files with groups (e.g. one per ancestry) show one group at a time. A file that lists only the variants in
     high LD with its signals shows few points; use **The study's own LD** for it.
-  - **SVG**, **PNG** and **Table** (both p-values, betas and r² of every shared variant) download the figure and
+  - **SVG**, **PNG**, **PDF** and **Table** (both p-values, betas and r² of every shared variant) download the figure and
     its data; **Show lead** goes to the lead SNP in the browser.
   - On a new server, `genome-canvas/tools/fetch_external_data.py --configure` downloads the public data this uses
     (GTEx, 1000 Genomes, GENCODE genes, the Aragam 2022 CAD GWAS, liftover chains) and adds it to the configuration
@@ -97,7 +97,7 @@ whether each service is online and how many datasets your workspace has in each 
   all); **Center guide** draws a line at the center.
 - **Keep and share**: **Favorites** saves the whole view (tracks, locus, highlights) as a named profile in your
   workspace; **Share** on a Favorite lists it for the lab (others **Load** it or **Save a copy**; only you change it);
-  **Share** in the top bar copies a link that restores the view; **Export PNG** saves the canvas with a transparent
+  **Share** in the top bar copies a link that restores the view; **PNG**, **SVG** and **PDF** (beside Clear) save the canvas with a transparent
   background. Exported figures (here and in the other viewers) are set in Arial.
 - **Links from other modules** open a region with highlights and tracks, e.g.
   `/genome-canvas/?locus=chr6:33,557,481-33,857,780&highlight=chr6:33,707,481-33,707,780` (the Perturb viewer adds
@@ -140,7 +140,7 @@ it and tests GO terms, mouse and human phenotypes and single genes.
 ![GREAT term details](images/great-term.png)
 
 - **Export**: all data as GREAT's `.tsv`, the shown tables as `.tsv` or HTML, the region-gene associations, the regions
-  as BED; each graph as SVG or PNG (Arial). **Copy link** shares the results (kept 30 days).
+  as BED; each graph as SVG, PNG or PDF (Arial). **Copy link** shares the results (kept 30 days).
 - **From R**: rGREAT's online functions work against this server:
 
   ```r
@@ -208,7 +208,7 @@ coordinates. Without a dataset in the address the page lists your datasets ([sec
   keep, then color by *cell type*: only donor1's cells are drawn and counted. Filters appear as chips
   (*Only individual: donor1 ×*), combine with each other, apply to gene coloring, regions and CSV export, and are kept
   in the page address. On a UMAP or other embedding, **Labels on the plot** writes each shown category's name at the
-  center of its cells (the slider sets their size; they are also in PNG exports, and the choice is remembered).
+  center of its cells (the slider sets their size; they are also in PNG, SVG and PDF exports, and the choice is remembered).
 - **Gene expression**: type a gene (or pick a numeric annotation such as counts). Choose log-normalized or raw values,
   a colormap, the min / max range (histogram above), and whether cells at or below the minimum are gray, hidden or
   colored. With several assays (e.g. RNA, peaks, gene activity, chromVAR) choose it in **Assay**.
@@ -237,7 +237,7 @@ coordinates. Without a dataset in the address the page lists your datasets ([sec
     - **Points** shows up to 400 cells per group.
     - **Above 0 only** leaves out cells with no expression.
     - Hover a group for its cells, % above 0, median and mean.
-    - The plot window saves **SVG**, **PNG** or the per-group numbers (**Table**).
+    - The plot window saves **SVG**, **PNG**, **PDF** or the per-group numbers (**Table**).
     - One plot is computed at a time.
 - **Image**: the tissue image is drawn under the cells — H&E or IHC in its own colors with an **Opacity** slider,
   fluorescence channels (Xenium morphology) each with its color; **Black / White / Gamma** adjust the contrast.
@@ -245,7 +245,8 @@ coordinates. Without a dataset in the address the page lists your datasets ([sec
   **Crop to selection** (and **Invert**) shows only them, **Save…** keeps the region in this browser,
   **Export cells (CSV)** downloads the cells (all or the selection) with their annotations.
 - **Display**: layout (spatial or an embedding such as UMAP), cells as points or segmentation polygons, point size,
-  opacity, and the background (theme color or your own). **⬇ PNG** exports the view with a transparent background.
+  opacity, and the background (theme color or your own). **⬇ PNG**, **SVG** and **PDF** export the view with a transparent background: in SVG and PDF the cells,
+  labels and scale bar are vector shapes and text (only the cells in view), the tissue image is embedded as a picture.
 
 ![Gene expression on the H&E image](images/spatial-gene.jpg)
 
@@ -256,7 +257,7 @@ Spatial ATAC data has the same accessibility panel as the single-cell viewer bel
 ## 4. Single-cell viewer
 
 `/single-cell/` — scRNA-seq, snRNA-seq, multiome and scATAC on UMAP or any embedding. The controls are those of the
-spatial viewer (annotation, gene, regions, display, PNG, module scores); the layout menu switches embeddings. An
+spatial viewer (annotation, gene, regions, display, PNG / SVG / PDF, module scores); the layout menu switches embeddings. An
 integrated UMAP is shown first when there is one (Harmony `umap_h` / `umap.harmony`, WNN, bridge integration, scVI,
 CCA/RPCA …), else the first embedding.
 
@@ -419,7 +420,7 @@ for files on your Mac (**Open local files**). The **Shared tracks** card (Server
 list. **AlphaGenome** beside **GREAT** (Server only, from 1.11.0) opens the AlphaGenome panel over the canvas (on /
 off, AG1 / AG2, cell type, outputs, Predict this view); **AG predict** in the toolbar, grey while AlphaGenome is off,
 takes an rsID (see [AlphaGenome](#alphagenome-predictions-from-sequence)). Shortcuts: ⌘O server files, ⌘D public data,
-⇧⌘L shared tracks, ⇧⌘S favorites, ⇧⌘E PNG, ⌥⌘A AlphaGenome, ⌥⌘V AlphaGenome variant effect, ⇧⌘T light / dark,
+⇧⌘L shared tracks, ⇧⌘S favorites, ⇧⌘E PNG, ⌥⇧⌘E PDF (File → Export SVG… too), ⌥⌘A AlphaGenome, ⌥⌘V AlphaGenome variant effect, ⇧⌘T light / dark,
 ⌘, server and port forwarding.
 
 ![Genome Canvas.app opened from a link: region and highlight](images/app-genome-canvas.png)
@@ -438,7 +439,7 @@ opens with a click. Right-click a dataset for **Open**, **Edit Samples…**, **R
 
 ![Omics Canvas.app in dark mode](images/app-omics-spatial-dark.jpg)
 
-- Toolbar: back, **Datasets** (add, convert, manage — ⌘O), Export PNG (⇧⌘E), open the page in your browser (⇧⌘B),
+- Toolbar: back, **Datasets** (add, convert, manage — ⌘O), Export (PNG, SVG or PDF; ⇧⌘E PNG, ⌥⇧⌘E PDF), open the page in your browser (⇧⌘B),
   light / dark (⇧⌘T), reload (⌘R).
 - Genome Canvas links (from the Perturb viewer) open in **Genome Canvas.app** when it is installed — in place if it
   is already open, keeping its tracks — otherwise in your browser.
@@ -502,7 +503,10 @@ close the page, the browser or the app; **Jobs** lists them.
 ## 10. Tips
 
 - **Share** any view by copying the address: dataset, sample (`?s=`), gene (`?gene=`) and CRISPR selection are in it.
-- **Figures**: every PNG export has a transparent background; set the plot background under *Display* to preview it.
+- **Figures**: every figure saves as PNG, SVG or PDF. SVG and PDF are vector (editable in Illustrator or Inkscape), set
+  in Arial; PDF text keeps Arial's name and widths without embedding the font (Arial is on every Mac and Windows PC).
+  Every export has a transparent background; set the plot background under *Display* to preview it. Omics Workbench
+  writes each figure of a single-cell analysis as PNG, SVG and PDF (enlarge a QC figure to download them).
 - **Not private within the lab**: anyone signed in can open dataset links, and every dataset you add (and every
   server file you load in Genome Canvas outside your Home folder) is listed under Shared for the whole lab; workspaces
   keep lists tidy, they are not access control. Do not add data that must stay private.

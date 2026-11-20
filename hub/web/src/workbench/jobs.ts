@@ -214,7 +214,11 @@ export function bindFigureZoom(root: HTMLElement) {
     if (!img) return;
     const dlg = document.createElement('dialog');
     dlg.className = 'wb-dialog wb-zoom';
-    dlg.innerHTML = `<form method="dialog"><img src="${img.src}" alt="" /><footer><span class="spacer"></span><button class="btn btn--light">Close</button></footer></form>`;
+    // the analysis writes each figure as PNG, SVG and PDF (vector) with the same name
+    const name = (src: string, ext: string) => src.replace(/(name=[^&]*?)\.png(?=&|$)/, `$1.${ext}`);
+    const file = decodeURIComponent((img.src.match(/name=([^&]*)/) ?? [])[1] ?? 'figure.png').split('/').pop()!.replace(/\.png$/, '');
+    const links = ['png', 'svg', 'pdf'].map((ext) => `<a class="btn btn--light btn--sm" href="${esc(name(img.src, ext))}" download="${esc(`${file}.${ext}`)}">${ext.toUpperCase()}</a>`).join('');
+    dlg.innerHTML = `<form method="dialog"><img src="${img.src}" alt="" /><footer>${links}<span class="spacer"></span><button class="btn btn--light">Close</button></footer></form>`;
     document.body.append(dlg);
     dlg.addEventListener('close', () => dlg.remove());
     dlg.showModal();

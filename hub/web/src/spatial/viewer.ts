@@ -96,6 +96,7 @@ export class Viewer {
   private overlay: SVGSVGElement;
   private scalebar: HTMLElement;
   private draft: [number, number][] | null = null;
+  private layers: { id: string; clone(props: Record<string, unknown>): unknown }[] = [];
 
   /** Called after anything the side panel shows (selection, counts) may have changed. */
   onChange: () => void = () => {};
@@ -490,6 +491,93 @@ export class Viewer {
     return new Promise<Blob>((res) => out.toBlob((b) => res(b!), 'image/png'));
   }
 
+  /**
+   * The plot as SVG, as it is on screen, on a transparent background: cells as circles (or segmentation polygons),
+   * category labels and the scale bar as vector shapes and text (Arial), the morphology image as an embedded PNG.
+   * Only the cells in view are written.
+   */
+  figureSvg(ink: string) {
+    const canvas = this.deck.getCanvas()!;
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    const vp = this.deck.getViewports()[0];
+    const parts: string[] = [];
+    const f = (x: number) => (Math.round(x * 100) / 100).toString();
+    const hex = (c: ArrayLike<number>, i: number) => '#' + [c[i], c[i + 1], c[i + 2]].map((v) => v.toString(16).padStart(2, '0')).join('');
+    const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    // the image alone, read back from the canvas: the cell and label layers are hidden for one frame
+    if (this.layers.some((l) => l.id === 'image')) {
+      this.deck.setProps({ layers: this.layers.map((l) => (l.id === 'image' ? l : l.clone({ visible: false }))) as never });
+      this.deck.redraw('figure');
+      const url = canvas.toDataURL('image/png');
+      this.deck.setProps({ layers: this.layers as never });
+      this.deck.redraw('figure');
+      parts.push(`<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none" href="${url}"/>`);
+    }
+
+    const pos = this.layoutPos, col = this.colors, fil = this.filter, n = this.slide.n;
+    const spatial = this.layout === 'spatial';
+    const pxPerUnit = (() => {
+      const a = vp.project([0, 0]), b = vp.project([1, 0]);
+      return Math.abs(b[0] - a[0]);
+    })();
+    const polygons = this.usePolygons() && this.boundaries;
+    if (polygons) {
+      const b = this.boundaries!;
+      const alpha = this.opacity * 0.8;
+      parts.push(`<g opacity="${f(alpha)}">`);
+      for (let i = 0; i < n; i++) {
+        if (fil[i] < 0.5 || !col[i * 4 + 3]) continue;
+        const from = b.starts[i], to = b.starts[i + 1];
+        if (to - from < 3) continue;
+        const pts: string[] = [];
+        let inside = false;
+        for (let v = from; v < to; v++) {
+          const [x, y] = vp.project([b.xy[v * 2], b.xy[v * 2 + 1]]);
+          if (x >= 0 && x <= W && y >= 0 && y <= H) inside = true;
+          pts.push(`${f(x)} ${f(y)}`);
+        }
+        if (!inside) continue;
+        const a = col[i * 4 + 3] / 255;
+        parts.push(`<path d="M${pts.join('L')}Z" fill="${hex(col, i * 4)}"${a < 1 ? ` fill-opacity="${f(a)}"` : ''}/>`);
+      }
+      parts.push('</g>');
+    } else {
+      const rad = this.slide.radius, o = this.order;
+      parts.push(`<g opacity="${f(this.opacity)}">`);
+      for (let k = 0; k < n; k++) {
+        const i = o ? o[k] : k;
+        if (fil[i] < 0.5 || !col[i * 4 + 3]) continue;
+        const x = pos[i * 2], y = pos[i * 2 + 1];
+        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+        const r = Math.max(0.7, spatial ? rad[i] * this.pointScale * pxPerUnit : 2.2 * this.pointScale);
+        const [px, py] = vp.project([x, y]);
+        if (px < -r || px > W + r || py < -r || py > H + r) continue;
+        const a = col[i * 4 + 3] / 255;
+        parts.push(`<circle cx="${f(px)}" cy="${f(py)}" r="${f(r)}" fill="${hex(col, i * 4)}"${a < 1 ? ` fill-opacity="${f(a)}"` : ''}/>`);
+      }
+      parts.push('</g>');
+    }
+
+    if (this.labelSize && this.labelsPossible()) {
+      const [r, g, b] = this.labelInk, [hr, hg, hb, ha] = this.labelHalo;
+      parts.push(`<g font-family="Arial" font-size="${this.labelSize}" font-weight="600" text-anchor="middle" dominant-baseline="central" fill="rgb(${r},${g},${b})" stroke="rgb(${hr},${hg},${hb})" stroke-opacity="${f(ha / 255)}" stroke-width="${f(this.labelSize / 7 * 2)}" stroke-linejoin="round" paint-order="stroke">`);
+      for (const item of this.labels()) {
+        const [x, y] = vp.project(item.position);
+        if (x < 0 || x > W || y < 0 || y > H) continue;
+        parts.push(`<text x="${f(x)}" y="${f(y)}">${esc(item.text)}</text>`);
+      }
+      parts.push('</g>');
+    }
+
+    if (!this.scalebar.hidden) {
+      const w = this.scalebar.offsetWidth, x = 20, y = H - 24;
+      parts.push(`<rect x="${x}" y="${y}" width="${w}" height="3" fill="${esc(ink)}"/>`,
+        `<text x="${x}" y="${y - 6}" font-family="Arial" font-size="13" fill="${esc(ink)}">${esc(this.scalebar.textContent ?? '')}</text>`);
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">\n${parts.join('\n')}\n</svg>\n`;
+  }
+
   // ------------------------------------------------------------- image
 
   /** Call after changing channel colors/windows; `refetch` when the visible set changed. */
@@ -709,6 +797,7 @@ export class Viewer {
       }));
     }
 
+    this.layers = layers as never;
     this.deck.setProps({ layers: layers as never });
     this.updateScalebar();
   }

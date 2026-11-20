@@ -149,7 +149,7 @@
           <div class="bg-row"><input type="color" value="#ffffff" data-bg aria-label="Background color" />
             <label class="check"><input type="checkbox" checked data-bg-theme /> Follow theme</label></div>
         </div>
-        <p class="hint">PNG exports are always transparent.</p>
+        <p class="hint">PNG, SVG and PDF exports are always transparent.</p>
       </details>
     </aside>
 
@@ -161,7 +161,11 @@
           <button type="button" data-tool="lasso" title="Lasso selection">✎</button>
         </div>
         <button type="button" data-fit title="Fit to view">⤢ Fit</button>
-        <button type="button" data-shot title="Save image (PNG)">⬇ PNG</button>
+        <div class="shots" role="group" aria-label="Save the plot">
+          <button type="button" data-shot="png" title="Save the plot as PNG (transparent background)">⬇ PNG</button>
+          <button type="button" data-shot="svg" title="Save the plot as SVG (vector; the tissue image embedded)">SVG</button>
+          <button type="button" data-shot="pdf" title="Save the plot as PDF (vector; the tissue image embedded)">PDF</button>
+        </div>
         <span class="status" data-status></span>
       </div>
       <div class="sv-canvas" data-canvas>

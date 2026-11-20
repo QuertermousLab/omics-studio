@@ -103,6 +103,7 @@ STATIC_FILES = {
     "/locuscompare.mjs": ("locuscompare.mjs", "text/javascript; charset=utf-8"),
     "/public-hubs.mjs": ("public-hubs.mjs", "text/javascript; charset=utf-8"),
     "/alphagenome.mjs": ("alphagenome.mjs", "text/javascript; charset=utf-8"),
+    "/figure-export.mjs": ("figure-export.mjs", "text/javascript; charset=utf-8"),
     "/highlights.mjs": ("highlights.mjs", "text/javascript; charset=utf-8"),
     "/reference-resources.mjs": ("reference-resources.mjs", "text/javascript; charset=utf-8"),
     "/canvas-theme.mjs": ("canvas-theme.mjs", "text/javascript; charset=utf-8"),

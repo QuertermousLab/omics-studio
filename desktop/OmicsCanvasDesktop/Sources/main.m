@@ -773,7 +773,7 @@ static NSDictionary<NSString *, NSString *> *TVViewerForPath(NSString *path) {
     [self.pageTitleLabel setContentCompressionResistancePriority:NSLayoutPriorityDefaultLow forOrientation:NSLayoutConstraintOrientationHorizontal];
     NSView *spacer = [[NSView alloc] initWithFrame:NSZeroRect];
     [spacer setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
-    self.exportButton = [self toolButton:@"photo" tip:@"Export PNG (transparent background)" action:@selector(exportPNG:)];
+    self.exportButton = [self toolButton:@"photo" tip:@"Export the plot: PNG, SVG or PDF (transparent background)" action:@selector(showExportMenu:)];
     GCButton *browserButton = [self toolButton:@"safari" tip:@"Open this page in the web browser" action:@selector(openInBrowser:)];
     self.themeButton = [self iconButton:@"moon" tip:@"Switch to dark theme" action:@selector(toggleAppearance:)];
     self.reloadButton = [self iconButton:@"arrow.clockwise" tip:@"Reload" action:@selector(reloadOrStop:)];
@@ -1086,16 +1086,32 @@ static NSDictionary<NSString *, NSString *> *TVViewerForPath(NSString *path) {
     }];
 }
 
-- (void)exportPNG:(id)sender {
-    [self callDesktopMethod:@"exportPNG" arguments:@[] completion:^(id result) {
+// PNG, SVG or PDF of the viewer's plot: the page renders it and saves it as a download (the save panel)
+- (void)exportFigure:(NSString *)format {
+    [self callDesktopMethod:@"exportFigure" arguments:@[format] completion:^(id result) {
         if ([result respondsToSelector:@selector(boolValue)] && [result boolValue]) return;
         NSAlert *alert = [[NSAlert alloc] init];
         alert.messageText = @"Nothing to Export";
-        alert.informativeText = @"Open a spatial or single-cell dataset first; its plot is saved as a PNG with a transparent background.";
+        alert.informativeText = @"Open a spatial or single-cell dataset first; its plot is saved as PNG, SVG or PDF with a transparent background.";
         [alert addButtonWithTitle:@"OK"];
         [alert beginSheetModalForWindow:self.window completionHandler:nil];
     }];
 }
+
+// the toolbar's export button: a menu of the three formats under it
+- (void)showExportMenu:(NSButton *)sender {
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@"Export"];
+    for (NSArray<NSString *> *entry in @[@[@"PNG (transparent background)", @"png"], @[@"SVG (vector)", @"svg"], @[@"PDF (vector)", @"pdf"]]) {
+        NSMenuItem *item = [menu addItemWithTitle:entry[0] action:@selector(exportFigureFromMenu:) keyEquivalent:@""];
+        item.target = self;
+        item.representedObject = entry[1];
+    }
+    [menu popUpMenuPositioningItem:nil atLocation:NSMakePoint(0, sender.isFlipped ? NSHeight(sender.bounds) + 4 : -4) inView:sender];
+}
+- (void)exportFigureFromMenu:(NSMenuItem *)sender { [self exportFigure:sender.representedObject ?: @"png"]; }
+- (void)exportPNG:(id)sender { [self exportFigure:@"png"]; }
+- (void)exportSVG:(id)sender { [self exportFigure:@"svg"]; }
+- (void)exportPDF:(id)sender { [self exportFigure:@"pdf"]; }
 
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
     if (![message.name isEqualToString:@"vizhub"] || ![message.body isKindOfClass:[NSDictionary class]]) return;
@@ -1602,6 +1618,8 @@ static NSArray *TVSamples(NSDictionary *dataset) {
     [fileMenu addItem:self.sharedMenuItem];
     [fileMenu addItem:[NSMenuItem separatorItem]];
     [fileMenu addItem:[self menuItem:@"Export PNG…" action:@selector(exportPNG:) key:@"e" modifiers:NSEventModifierFlagCommand | NSEventModifierFlagShift]];
+    [fileMenu addItem:[self menuItem:@"Export SVG…" action:@selector(exportSVG:) key:@"" modifiers:0]];
+    [fileMenu addItem:[self menuItem:@"Export PDF…" action:@selector(exportPDF:) key:@"e" modifiers:NSEventModifierFlagCommand | NSEventModifierFlagShift | NSEventModifierFlagOption]];
     [fileMenu addItem:[self menuItem:@"Open in Browser" action:@selector(openInBrowser:) key:@"b" modifiers:NSEventModifierFlagCommand | NSEventModifierFlagShift]];
     [fileMenu addItem:[NSMenuItem separatorItem]];
     [fileMenu addItemWithTitle:@"Close Window" action:@selector(performClose:) keyEquivalent:@"w"];

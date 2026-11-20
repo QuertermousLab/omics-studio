@@ -125,7 +125,7 @@ omics-studio/            (on THOR: /nfs/baldar/quanyiz/vizhub)
   headings in the system font (San Francisco on a Mac, Segoe UI on Windows), code and loci in JetBrains Mono. They share Genome Canvas's theme
   setting (`localStorage` key `genome-canvas:theme`, same origin): the sun/moon button switches every tool.
 - The viewers' plot background follows the theme (Genome Canvas's canvas color: white / `#2e3440`) unless a color is set
-  under Display → Background (kept per browser; "Follow theme" goes back). PNG exports are always transparent; morphology
+  under Display → Background (kept per browser; "Follow theme" goes back). PNG, SVG and PDF exports are always transparent; morphology
   image tiles carry alpha, so they look the same as before on black and stay transparent elsewhere.
 - Datasets and conversions belong to a **workspace** — Genome Canvas's password-free workspaces (one per /home user,
   plus named ones). The chip in the top bar reads and sets Genome Canvas's selection through its API, so choosing a

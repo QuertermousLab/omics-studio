@@ -112,10 +112,15 @@ the web app: plain HTML, CSS and ES modules.
   and Fraunces until 2026-11-13, still bundled), JetBrains Mono (loci, code), in both themes and in the Mac app (native
   text: `GCUIFont` / `GCHeadingFont` = `systemFontOfSize:weight:`).
 - **Layout:** classic: top bar, left track library, canvas toolbar row.
-- **Exported figures are set in Arial** (PNG export rewrites IGV's fonts with `arialFonts`; LocusCompare and the hub's
+- **Exported figures are set in Arial** (the export rewrites IGV's fonts with `arialFonts`; LocusCompare and the hub's
   plots draw in Arial). Asked by the user on 2026-11-02, for every image export.
-- **PNG export uses the light palette on a transparent background** regardless of theme
-  (`exportPNG` switches to `LIGHT_CANVAS` around `toSVG`; `transparentBackground` turns the SVG backdrop and
+- **Every figure exports as PNG, SVG and vector PDF** (the user's request, 2026-11-20): `figure-export.mjs`, shared by
+  this page, GREAT and the hub (both load it from `/genome-canvas/`; keep its `?v=` the same everywhere).
+  `svgToPdf` is our own SVG -> PDF writer (no library): shapes, paths, clip paths, opacity, text (ArialMT / Arial-BoldMT
+  not embedded, with Arial's widths; Symbol for Greek and math; sub/superscript digits drawn small), embedded images.
+  Test a change with `tests/test_figure_export.mjs` and by rendering the PDF (`gs -sDEVICE=png16m`).
+- **Export uses the light palette on a transparent background** regardless of theme
+  (`exportView` switches to `LIGHT_CANVAS` around `toSVG`; `transparentBackground` turns the SVG backdrop and
   full-width white track clears into `fill="none"`, keeping small label halos). Changed from a white
   background at the user's request on 2026-10-12.
 - **Logo:** `public/favicon.svg` (signal peak + gene row on a teal tile);
@@ -140,13 +145,13 @@ inside `withoutCanvasAdapter()`. IGV's HTML (track labels, menus, drag/gear
 columns) is themed through `.genome-canvas-dark` CSS in `TRACK_REORDER_CSS` in
 `app.js`. Covered by `tests/test_canvas_theme.mjs`.
 
-## PNG export pipeline
+## Export pipeline
 
-`exportPNG()` in `app.js` works in four steps:
+`exportView(format)` in `app.js` works in four steps (PNG, SVG and PDF share 1-2):
 1. `browser.toSVG()`: IGV redraws every track into an SVG context, one element per shape.
 2. Read the size from the root `<svg>` tag (`svgRootSize`; do not `DOMParser` the whole document).
-3. Rasterize the SVG at 2x.
-4. Encode the PNG.
+3. PNG: rasterize the SVG at 2x and encode it. SVG: save the text. PDF: `svgToPdf` (`figure-export.mjs`).
+4. Save it as a download (the Mac app's save panel).
 
 Steps 1 and 3 run on the main thread and scale with the **number of SVG
 elements**, so a renderer that draws thousands of shapes must not emit them as
@@ -162,7 +167,7 @@ from 3.5 s to 0.7 s with pixel-identical output (`tests/test_hic_heatmap.mjs`
 covers it). Other rules:
 - Export swaps the canvas palette to `LIGHT_CANVAS` only around `toSVG` and
   restores it without a repaint, since the screen is not redrawn. The PNG background is transparent.
-- The button is disabled while an export runs.
+- The buttons are disabled while an export runs.
 
 To profile export, use the Playwright setup below. In `addInitScript`, wrap
 `window.igv.createBrowser` to capture the IGV browser object, then time

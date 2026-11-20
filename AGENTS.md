@@ -93,7 +93,10 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
   densities that the page draws as SVG. Both are open like `/hub/api/data/` (no workspace check). Tests:
   `python -m unittest discover hub/tests` (also run in CI).
 - Never delete or overwrite source data on `/nfs`; conversions write to `<source>.vizhub/` next to it.
-- Exported figures (PNG / SVG of the viewers, plots and Genome Canvas) are set in Arial (the user's rule).
+- Exported figures (PNG / SVG / PDF of the viewers, plots and Genome Canvas) are set in Arial (the user's rule). Every
+  figure saves as PNG, SVG and vector PDF (the user's request, 2026-11-20): `genome-canvas/figure-export.mjs` converts
+  the SVG (the hub's `figureBlob` in `common.ts`, GREAT and Genome Canvas load it); the spatial / single-cell plot's SVG
+  is `Viewer.figureSvg`; Workbench's R figures are written three times (`draw_figure` in `workbench/scripts/sc_analysis.R`).
 - Interface type (the user's choice, 2026-11-13): everything in the system font — text, buttons, tables (`--font:
   system-ui, …`: San Francisco on a Mac, Segoe UI on Windows, PingFang / Microsoft YaHei for Chinese) and headings
   (`--heading-font: var(--font)`, at weight 600-650) — also in the Mac apps' native parts (`GCUIFont`, `GCHeadingFont`:

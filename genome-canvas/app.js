@@ -8,6 +8,7 @@ import { DARK_CANVAS, LIGHT_CANVAS, canvasTheme, installDarkCanvasAdapter, setCa
 import { normalizeReferenceResources } from "./reference-resources.mjs?v=20261005.1";
 import { announceWorkspace, chooseWorkspace, watchWorkspace } from "./workspace-chooser.mjs?v=20261113.1";
 import { installAlphaGenome } from "./alphagenome.mjs?v=20261120.5";
+import { figureBlob, saveBlob } from "./figure-export.mjs?v=20261120.1";
 import {
   DEFAULT_HIGHLIGHT_COLOR,
   HIGHLIGHT_FILL_ALPHA,
@@ -3185,12 +3186,17 @@ function arialFonts(svgText) {
     .replace(/(\bfont(?:=|:\s*)"?[^";]*?\d+(?:\.\d+)?px\s+)[^";]+/g, "$1Arial");
 }
 
-async function exportPNG() {
+const FORMAT_NAMES = { png: "PNG", svg: "SVG", pdf: "PDF" };
+
+/** Exports the canvas as PNG (transparent), SVG or vector PDF: the same SVG rendering of the view in each format. */
+async function exportView(format = "png") {
   if (!state.browser || exportInProgress) return;
+  if (!FORMAT_NAMES[format]) format = "png";
+  const name = FORMAT_NAMES[format];
   exportInProgress = true;
-  const exportButton = $("#export-button");
-  if (exportButton) exportButton.disabled = true;
-  setStatus("Generating PNG...", "busy");
+  const exportButtons = [...document.querySelectorAll("#export-controls button")];
+  for (const button of exportButtons) button.disabled = true;
+  setStatus(`Generating ${name}...`, "busy");
   // Let the status and disabled button paint before the synchronous SVG render.
   await new Promise((resolve) => window.requestAnimationFrame(() => window.setTimeout(resolve, 0)));
   try {
@@ -3205,39 +3211,20 @@ async function exportPNG() {
     } finally {
       setCanvasTheme(screenPalette);
     }
-    const { width, height } = svgRootSize(svgText);
+    const { width } = svgRootSize(svgText);
     svgText = arialFonts(transparentBackground(svgText, width));
-    const scale = Math.min(2, 8192 / Math.max(width, height));
-    const blob = new Blob([svgText], { type: "image/svg+xml;charset=utf-8" });
-    const objectURL = URL.createObjectURL(blob);
-    const image = new Image();
-    image.decoding = "async";
-    image.src = objectURL;
-    await image.decode();
-
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(width * scale));
-    canvas.height = Math.max(1, Math.round(height * scale));
-    const context = canvas.getContext("2d");
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    URL.revokeObjectURL(objectURL);
-
-    const png = await new Promise((resolve, reject) => canvas.toBlob((result) => result ? resolve(result) : reject(new Error("PNG encoder returned no data")), "image/png"));
-    const downloadURL = URL.createObjectURL(png);
-    const anchor = document.createElement("a");
-    const locus = String(state.browser.currentLoci()).replace(/[^a-z0-9_-]+/gi, "_").slice(0, 80);
-    anchor.href = downloadURL;
-    anchor.download = `genome-canvas_${state.currentGenome}_${locus}.png`;
-    anchor.click();
-    window.setTimeout(() => URL.revokeObjectURL(downloadURL), 1000);
-    setStatus("PNG exported");
-    toast("PNG screenshot exported");
+    const loci = String(state.browser.currentLoci());
+    const blob = await figureBlob(svgText, format, { scale: 2, max: 8192, title: `Genome Canvas ${loci}` });
+    const locus = loci.replace(/[^a-z0-9_-]+/gi, "_").slice(0, 80);
+    saveBlob(blob, `genome-canvas_${state.currentGenome}_${locus}.${format}`);
+    setStatus(`${name} exported`);
+    toast(`${name} exported`);
   } catch (error) {
-    setStatus("PNG export failed", "error");
-    toast(`Could not export PNG: ${error.message}`, "error");
+    setStatus(`${name} export failed`, "error");
+    toast(`Could not export ${name}: ${error.message}`, "error");
   } finally {
     exportInProgress = false;
-    if (exportButton) exportButton.disabled = false;
+    for (const button of exportButtons) button.disabled = false;
   }
 }
 
@@ -3534,7 +3521,7 @@ function renderLocusCompare(data) {
   if (data.ld.source === "study" || !data.gwas.studyLD) $("#lc-ld").querySelector('option[value="study"]').disabled = !data.gwas.studyLD;
   $("#lc-status").textContent = `${data.eqtl.symbol} in ${data.eqtl.tissueLabel}: ${data.snps.length.toLocaleString()} shared variants · lead ${lead?.rsid || lead?.id || "—"}`
     + `${data.ld.available ? ` · ${data.ld.label}` : ` · LD: ${data.ld.reason}`}${data.eqtl.significantOnly ? " · eQTLs: significant pairs only" : ""} · click a point to use it as the lead`;
-  for (const id of ["lc-goto", "lc-svg", "lc-png", "lc-tsv"]) $(`#${id}`).disabled = false;
+  for (const id of ["lc-goto", "lc-svg", "lc-png", "lc-pdf", "lc-tsv"]) $(`#${id}`).disabled = false;
 }
 
 function locusCompareHit(event) {
@@ -3577,18 +3564,11 @@ async function exportLocusCompare(kind) {
   }
   // exported figures use the light palette on a transparent background, as the PNG export of the view
   const figure = locusCompareSVG(data, { theme: LIGHT_CANVAS, accent: "#4c7a86" });
-  const svgBlob = new Blob([figure.svg], { type: "image/svg+xml;charset=utf-8" });
-  if (kind === "svg") { downloadLocusCompare(svgBlob, locusCompareFile("svg")); return; }
-  const href = URL.createObjectURL(svgBlob);
-  const image = new Image();
-  image.src = href;
-  await image.decode();
-  const canvas = document.createElement("canvas");
-  canvas.width = figure.width * 2;
-  canvas.height = figure.height * 2;
-  canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
-  URL.revokeObjectURL(href);
-  canvas.toBlob((png) => png && downloadLocusCompare(png, locusCompareFile("png")), "image/png");
+  try {
+    downloadLocusCompare(await figureBlob(figure.svg, kind, { scale: 2, title: "LocusCompare" }), locusCompareFile(kind));
+  } catch (error) {
+    toast(`Could not export ${kind.toUpperCase()}: ${error.message}`, "error");
+  }
 }
 
 // ---------------------------------------------------------------- GREAT
@@ -3692,7 +3672,8 @@ window.GenomeCanvasDesktop = Object.freeze({
   openWorkspace() { void openWorkspaceChooser(); return true; },
   manageWorkspaces() { showWorkspaceGate(); return true; },
   share() { void shareCurrentView(); return true; },
-  exportPNG() { void exportPNG(); return true; },
+  exportPNG() { void exportView("png"); return true; },
+  exportFigure(format) { void exportView(String(format || "png")); return true; },
   reload() { window.location.reload(); return true; },
   // The native client owns the theme in desktop mode; this applies it without
   // saving a browser-side override.
@@ -3801,6 +3782,7 @@ function bindEvents() {
   });
   $("#lc-svg").addEventListener("click", () => exportLocusCompare("svg"));
   $("#lc-png").addEventListener("click", () => exportLocusCompare("png"));
+  $("#lc-pdf").addEventListener("click", () => exportLocusCompare("pdf"));
   $("#lc-tsv").addEventListener("click", () => exportLocusCompare("tsv"));
   ui.liftoverFrom.addEventListener("change", () => fillLiftoverTargets(ui.liftoverTo.value));
   $("#liftover-swap").addEventListener("click", () => {
@@ -3824,7 +3806,7 @@ function bindEvents() {
   $("#help-button").addEventListener("click", () => showDialog("help-dialog"));
   $("#share-button").addEventListener("click", shareCurrentView);
   $("#copy-share-button").addEventListener("click", copyShareLink);
-  $("#export-button").addEventListener("click", exportPNG);
+  for (const button of document.querySelectorAll("#export-controls button")) button.addEventListener("click", () => exportView(button.dataset.format));
   $("#refresh-tracks").addEventListener("click", syncTracks);
   $("#load-selected-button").addEventListener("click", loadSelectedFiles);
   ui.selectAllFiles.addEventListener("click", selectAllVisibleFiles);

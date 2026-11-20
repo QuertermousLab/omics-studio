@@ -24,7 +24,7 @@ Genome Canvas is a local-network genome browser for laboratories and research te
 - Selective loading from ENCODE, GTEx, Roadmap Epigenomics, and 4DN hubs, plus custom hub URLs
 - Automatic assay color families with deterministic sample-specific shades
 - Wide UCSC/WashU-style track reorder grips with full-height drag targets
-- PNG export of the current canvas
+- PNG, SVG and vector PDF export of the current canvas (and of LocusCompare)
 - LAN share links stored on this server
 - Responsive layout, keyboard search (`/` or `Ctrl/⌘ K`), and zoom controls
 - Nord light ("Snow Storm") and dark ("Polar Night") interface themes that follow the operating system, with a manual toggle in the top bar
@@ -191,7 +191,7 @@ CSS custom properties in `styles.css`: `:root` holds the light theme and
 In the dark theme the track canvas is Nord `#2e3440`: `canvas-theme.mjs` swaps
 only canvas chrome (ruler, axes, labels, legends, empty Hi-C cells) and draws
 neutral dark-gray features such as RefSeq genes in light gray so they stay
-visible; colored tracks are unchanged. Export PNG always renders with the
+visible; colored tracks are unchanged. Export (PNG, SVG, PDF) always renders with the
 light palette on a transparent background, whichever theme is active. Manrope, Fraunces and JetBrains Mono (SIL
 OFL 1.1, licenses alongside the files) are bundled in `vendor/fonts/`, so no
 font service is contacted. `public/favicon.svg` is the application logo; the
