@@ -18,13 +18,13 @@
     })();
   </script>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20261113.6">
+  <link rel="stylesheet" href="styles.css?v=20261120.1">
   <!-- Start the large engine download and the module graph in parallel with
        the stylesheet. Keep these hrefs identical to the import specifiers in
        app.js (including ?v=) so the preloaded responses are reused. -->
   <link rel="preload" href="vendor/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="vendor/igv.min.js?v=20261005-reference-cache" as="script">
-  <link rel="modulepreload" href="app.js?v=20261113.1">
+  <link rel="modulepreload" href="app.js?v=20261120.1">
   <link rel="modulepreload" href="workspace-chooser.mjs?v=20261113.1">
   <link rel="modulepreload" href="track-colors.mjs?v=20260821.4">
   <link rel="modulepreload" href="signal-style.mjs?v=20261007.2">
@@ -36,6 +36,7 @@
   <link rel="modulepreload" href="reference-resources.mjs?v=20261005.1">
   <link rel="modulepreload" href="highlights.mjs?v=20261012.3">
   <link rel="modulepreload" href="public-hubs.mjs?v=20260824.3">
+  <link rel="modulepreload" href="alphagenome.mjs?v=20261120.1">
 </head>
 <body class="workspace-pending">
   <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -70,6 +71,7 @@
     <symbol id="i-scatter" viewBox="0 0 24 24"><path d="M4 4v16h16"/><circle cx="8.5" cy="14.5" r="1.3"/><circle cx="12" cy="11" r="1.3"/><circle cx="16.5" cy="7.5" r="1.3"/><circle cx="15" cy="14" r="1.3"/></symbol>
     <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/></symbol>
     <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5a5.5 5.5 0 0 1 11 0"/><path d="M15.5 5.2a3 3 0 0 1 0 5.6M17.6 14.3a5.5 5.5 0 0 1 2.9 5.2"/></symbol>
+    <symbol id="i-dna" viewBox="0 0 24 24"><path d="M3 9c2 0 2.5-3 4-3s1.5 2 3 2 2-5 3.5-5 2 4 3.5 4 1.5-1.5 3-1.5"/><path d="M4 17c3-2.6 5.5-2.6 8 0s5 2.6 8 0M4 17c3 2.6 5.5 2.6 8 0s5-2.6 8 0"/></symbol>
     <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></symbol>
   </svg>
 
@@ -204,6 +206,29 @@
           </div>
         </div>
 
+        <section class="ag-card" id="ag-card" hidden aria-label="AlphaGenome">
+          <div class="ag-head">
+            <span class="source-glyph ag-glyph" aria-hidden="true"><svg class="icon"><use href="#i-dna"/></svg></span>
+            <span><strong>AlphaGenome</strong><small id="ag-state">Checking…</small></span>
+            <button class="ag-switch" id="ag-power" type="button" role="switch" aria-checked="false" aria-label="AlphaGenome on the GPU server" title="Start or stop AlphaGenome on the GPU server (the GPUs are free while it is off)"><span></span></button>
+          </div>
+          <div class="ag-body" id="ag-body" hidden>
+            <div class="ag-backend" role="group" aria-label="Prediction backend">
+              <button type="button" data-ag-backend="ag1" aria-pressed="true" title="AlphaGenome 1 on the lab's GPUs, with the coronary smooth muscle models">AG1 · local</button>
+              <button type="button" data-ag-backend="ag2" aria-pressed="false" title="AlphaGenome 2 through Google's API (the lab account's quota)">AG2 · API</button>
+            </div>
+            <label class="ag-field"><span>Cell / tissue</span>
+              <input id="ag-biosample-filter" type="search" placeholder="Filter, e.g. smooth muscle, liver, CL:" autocomplete="off" spellcheck="false">
+              <select id="ag-biosample" aria-label="Cell or tissue"></select></label>
+            <div class="ag-tracks" id="ag-tracks" aria-label="Predicted outputs"></div>
+            <div class="ag-actions">
+              <button class="primary-button small" id="ag-predict-view" type="button" disabled title="Predict the chosen outputs for the current view (up to 524 kb)">Predict this view</button>
+              <a class="ag-manage" href="/alphagenome/studio/" target="_blank" rel="noopener" title="AlphaGenome's page: GPU memory, who uses it, AlphaGenome Atlas">Manage</a>
+            </div>
+            <p class="ag-note" id="ag-note" role="status"></p>
+          </div>
+        </section>
+
         <div class="track-section-heading">
           <span>Current view</span>
           <span class="track-heading-actions">
@@ -232,6 +257,7 @@
             <span class="span-pill" id="view-span">—</span>
           </div>
           <div class="stage-actions">
+            <button class="tool-button ag-predict-button" id="ag-predict-button" type="button" disabled title="Start AlphaGenome in the track library first"><svg class="icon" aria-hidden="true"><use href="#i-dna"/></svg><span class="button-label">AG predict</span></button>
             <button class="tool-button" id="center-guide-button" type="button" aria-pressed="false" title="Toggle center guide"><svg class="icon" aria-hidden="true"><use href="#i-crosshair"/></svg><span class="button-label">Center guide</span></button>
             <div class="highlight-controls" id="highlight-controls">
               <button class="tool-button" id="highlight-mode-button" type="button" aria-pressed="false" title="Drag across a track to highlight a genomic interval (Esc to exit)"><svg class="icon" aria-hidden="true"><use href="#i-highlight"/></svg><span class="button-label">Highlight</span></button>
@@ -548,6 +574,24 @@
     </form>
   </dialog>
 
+  <dialog class="modal ag-modal" id="ag-dialog">
+    <form class="dialog-shell" id="ag-form" method="dialog">
+      <header class="dialog-header">
+        <div><span>AlphaGenome</span><h2>Variant effect</h2></div>
+        <button class="dialog-close" type="button" data-close-dialog="ag-dialog" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
+      <div class="dialog-content ag-dialog-content">
+        <label class="dialog-field"><span>dbSNP rsID</span>
+          <input id="ag-rsid" autocomplete="off" spellcheck="false" placeholder="rs429358"></label>
+        <label class="dialog-field" hidden><span>Allele</span><select id="ag-alleles"></select></label>
+        <p class="build-note">Genome Canvas jumps to a 131,072 bp window around the variant (GRCh38), highlights it and
+          predicts REF, ALT and ALT − REF for: <b id="ag-dialog-tracks">—</b>.</p>
+        <p class="ag-note" id="ag-dialog-status" role="status"></p>
+      </div>
+      <footer class="dialog-footer"><span>Research use only (AlphaGenome model terms).</span><button class="primary-button" id="ag-rsid-go" type="submit">Predict</button></footer>
+    </form>
+  </dialog>
+
   <dialog class="modal help-modal" id="help-dialog">
     <form method="dialog" class="dialog-shell">
       <header class="dialog-header">
@@ -573,6 +617,6 @@
   <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
   <script defer src="vendor/igv.min.js?v=20261005-reference-cache"></script>
-  <script type="module" src="app.js?v=20261113.1"></script>
+  <script type="module" src="app.js?v=20261120.1"></script>
 </body>
 </html>

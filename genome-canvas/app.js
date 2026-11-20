@@ -7,6 +7,7 @@ import { locusCompareSVG, locusCompareTSV, snpTooltip } from "./locuscompare.mjs
 import { DARK_CANVAS, LIGHT_CANVAS, canvasTheme, installDarkCanvasAdapter, setCanvasTheme } from "./canvas-theme.mjs?v=20261007.2";
 import { normalizeReferenceResources } from "./reference-resources.mjs?v=20261005.1";
 import { announceWorkspace, chooseWorkspace, watchWorkspace } from "./workspace-chooser.mjs?v=20261113.1";
+import { installAlphaGenome } from "./alphagenome.mjs?v=20261120.1";
 import {
   DEFAULT_HIGHLIGHT_COLOR,
   HIGHLIGHT_FILL_ALPHA,
@@ -959,6 +960,7 @@ function updateLocus(referenceFrames) {
 
 function setCurrentGenome(genome) {
   state.currentGenome = genome;
+  state.alphaGenome?.render();
   ui.assembly.textContent = String(genome || "CUSTOM").toUpperCase();
   $("#hub-current-genome").textContent = genome;
   const existing = [...ui.genome.options].find((option) => option.value === genome);
@@ -2627,6 +2629,9 @@ async function loadCustomReference(event) {
 function currentProfileState() {
   if (!state.browser) throw new Error("Genome browser is not ready");
   const session = state.browser.toJSON();
+  // AlphaGenome predictions are in-memory tracks: a saved view or a share link cannot bring them back
+  const fromAlphaGenome = (track) => track?.genomeCanvasAlphaGenome || (track?.tracks || []).some((t) => t?.genomeCanvasAlphaGenome);
+  if (Array.isArray(session.tracks)) session.tracks = session.tracks.filter((track) => !fromAlphaGenome(track));
   session.genomeCanvasHighlights = state.highlights.map(({ id, chr, start, end, color }) => ({ id, chr, start, end, color }));
   session.genomeCanvasCenterGuide = state.centerGuide;
   session.genomeCanvasHighlightColor = normalizeHexColor(ui.highlightColor.value, DEFAULT_HIGHLIGHT_COLOR);
@@ -3747,6 +3752,18 @@ function bindEvents() {
   $("#locuscompare-button").addEventListener("click", () => openLocusCompare());
   $("#great-button").addEventListener("click", () => openGREAT());
   void detectGREAT();
+  state.alphaGenome = installAlphaGenome({
+    browser: () => state.browser,
+    genome: () => state.currentGenome,
+    loadTrack: (config) => loadConfiguredTrack(config),
+    toast,
+    setStatus,
+    search: (locus) => state.browser.search(locus),
+    highlight: (chr, start, end) => {
+      state.highlights.push({ id: `alphagenome-${Date.now()}`, chr, start, end, color: normalizeHexColor(ui.highlightColor.value, DEFAULT_HIGHLIGHT_COLOR) });
+      scheduleHighlightRender();
+    },
+  });
   $("#lc-go").addEventListener("click", () => runLocusCompare());
   $("#lc-source").addEventListener("change", () => { fillLocusCompareTissues(); $("#lc-gene").value = ""; });
   $("#lc-tissue").addEventListener("change", () => { $("#lc-gene").value = ""; void runLocusCompare(); });

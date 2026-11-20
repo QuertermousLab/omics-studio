@@ -179,6 +179,12 @@ clinical use.
   biosample and tracks on the left, then **Run prediction**. For a variant, fill in position / REF / ALT, or resolve
   an rsID, and switch the view between REF, ALT and Δ at the top right. **Start / stop** in its header goes back to
   the control page.
+- **In Genome Canvas** (hg38): the track library's **AlphaGenome** card has the same on / off switch. When it is on,
+  choose **AG1 · local** (the lab's GPUs, with the smooth muscle models) or **AG2 · API** (Google's AlphaGenome 2), a
+  cell type (default: coronary artery smooth muscle cells) and its outputs. **Predict this view** adds them as
+  `AG · …` tracks for the region in view (up to 524 kb). **AG predict** above the tracks (grey while AlphaGenome is
+  off) takes an rsID: Genome Canvas jumps to a 131 kb window around it, highlights the variant and adds, per output, a
+  REF / ALT overlay and an ALT − REF track. These tracks are not saved in Favorites or share links: predict again.
 - **It stops by itself** after an hour without predictions. Open Atlas tabs don't keep it running; batch SNP
   predictions on FREYA do. **Stop and free the GPUs** stops it at once. If someone else used it in the last
   10 minutes, or a batch job is running, only an administrator can stop it.
