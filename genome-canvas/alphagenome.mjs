@@ -48,6 +48,25 @@ export function binsToFeatures(chromosome, start, end, values) {
   return features;
 }
 
+/** ALT − REF at the variant (the bin holding it, 1-based position) and the window's largest |ALT − REF|, with its sign. */
+export function deltaSummary(start, end, delta, position) {
+  const n = delta?.length || 0;
+  if (!n) return { atVariant: null, extreme: null };
+  const i = Math.floor(((position - 1) - start) / ((end - start) / n));
+  const atVariant = i >= 0 && i < n ? Number(delta[i]) : null;
+  let extreme = 0;
+  for (const value of delta) if (Math.abs(value) > Math.abs(extreme)) extreme = Number(value);
+  return { atVariant, extreme };
+}
+
+/** A signed value for a track label: +0.021, −0.25, 0. */
+export function signed(value) {
+  if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+  if (value === 0) return "0";
+  const text = Math.abs(value) >= 100 ? Math.abs(value).toFixed(0) : Math.abs(value).toPrecision(2);
+  return (value > 0 ? "+" : "−") + text;
+}
+
 /** The model window for a view: centred, a multiple of 2,048 bp (AG2: one of its three lengths), at most 524,288 bp. */
 export function modelWindow(chromosome, start, end, backend = "ag1") {
   const width = Math.max(1, end - start);
@@ -324,6 +343,8 @@ export function installAlphaGenome(ctx) {
       const base = { genomeCanvasAlphaGenome: true, autoscale: true, height: 70, color: colour };
       const tip = `${t.label} · ${biosample?.label || ""} · ${s.backend.toUpperCase()}`;
       if (variant && t.alternate) {
+        const d = deltaSummary(iv.start, iv.end, t.delta, variant.position);
+        t.deltaAtVariant = d.atVariant;
         const name = `AG · ${rsid || "variant"} · ${t.label}`;
         s.loaded.push(await ctx.loadTrack({
           type: "merged", name, genomeCanvasAlphaGenome: true, height: 80, autoscale: true,
@@ -334,8 +355,10 @@ export function installAlphaGenome(ctx) {
           ],
         }));
         s.loaded.push(await ctx.loadTrack({
-          ...base, type: "wig", name: `AG Δ · ${rsid || "variant"} · ${t.label}`, altColor: DELTA_NEGATIVE, height: 60,
-          description: `${tip}: ALT − REF (max |Δ| ${Number(t.summary?.max_abs || 0).toPrecision(3)})`,
+          // the numbers on the track itself (its label): ALT − REF at the variant and the window's largest change
+          ...base, type: "wig", altColor: DELTA_NEGATIVE, height: 60,
+          name: `AG Δ · ${rsid || "variant"} · ${t.label} · at SNP ${signed(d.atVariant)} · max ${signed(d.extreme)}`,
+          description: `${tip}: ALT − REF; at ${variant.chromosome}:${variant.position.toLocaleString()} ${signed(d.atVariant)}, largest in the window ${signed(d.extreme)}`,
           features: binsToFeatures(iv.chromosome, iv.start, iv.end, t.delta),
         }));
       } else {
@@ -423,8 +446,8 @@ export function installAlphaGenome(ctx) {
       const { result, tracks } = await predict(region, variant);
       await show(result, tracks, variant, rsName);
       ui.dialog.close();
-      const top = (result.tracks || []).map((t) => `${t.label} ${Number(t.summary?.max_abs || 0).toPrecision(2)}`).join(" · ");
-      ctx.toast(`${rsName} ${variant.reference_bases}>${variant.alternate_bases}: max |ALT − REF| ${top} (${((performance.now() - started) / 1000).toFixed(1)} s)`);
+      const top = (result.tracks || []).map((t) => `${t.label} ${signed(t.deltaAtVariant)}`).join(" · ");
+      ctx.toast(`${rsName} ${variant.reference_bases}>${variant.alternate_bases}, ALT − REF at the SNP: ${top} (${((performance.now() - started) / 1000).toFixed(1)} s)`);
       ctx.setStatus("Ready");
     } catch (error) {
       ui.dialogStatus.textContent = error.message;

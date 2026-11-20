@@ -21,3 +21,18 @@ test("bins become contiguous wig features over the interval", () => {
   assert.equal(f[3].end, 2000);
   for (let i = 1; i < f.length; i += 1) assert.equal(f[i].start, f[i - 1].end);
 });
+
+test("ALT − REF on the track label: the variant's bin and the window's largest change, signed", async () => {
+  const { deltaSummary, signed } = await import("../alphagenome.mjs");
+  // 4 bins over [1000, 2000): position 1251 (1-based) is base 1250, the second bin
+  const d = deltaSummary(1000, 2000, [0.01, -0.3, 0.2, 0], 1251);
+  assert.equal(d.atVariant, -0.3);
+  assert.equal(d.extreme, -0.3);
+  assert.equal(deltaSummary(1000, 2000, [0.5, 0, 0, 0], 1999).atVariant, 0);
+  assert.equal(deltaSummary(1000, 2000, [], 1500).atVariant, null);
+  assert.equal(signed(0.0213), "+0.021");
+  assert.equal(signed(-0.25), "−0.25");
+  assert.equal(signed(0), "0");
+  assert.equal(signed(null), "—");
+  assert.equal(signed(197.4), "+197");
+});

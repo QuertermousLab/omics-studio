@@ -185,7 +185,8 @@ clinical use.
   cell type (default: coronary artery smooth muscle cells) and its outputs. **Predict this view** adds them as
   `AG · …` tracks for the region in view (up to 524 kb). **AG predict** above the tracks (grey while AlphaGenome is
   off) takes an rsID: Genome Canvas jumps to a 131 kb window around it, highlights the variant and adds, per output, a
-  REF / ALT overlay and an ALT − REF track. These tracks are not saved in Favorites or share links: predict again.
+  REF / ALT overlay and an ALT − REF track, whose label gives ALT − REF at the SNP and the window's largest change
+  (e.g. `at SNP +0.21 · max +0.25`). These tracks are not saved in Favorites or share links: predict again.
 - **It stops by itself** after an hour without predictions. Open Atlas tabs don't keep it running; batch SNP
   predictions on FREYA do. **Stop and free the GPUs** stops it at once. If someone else used it in the last
   10 minutes, or a batch job is running, only an administrator can stop it.
