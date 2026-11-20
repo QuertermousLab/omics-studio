@@ -12,7 +12,10 @@ Canvas), in three parts:
 - **GREAT** (`great/`, at `/great/`) — region set enrichment as GREAT 4.0.4 (default) and GREAT 3.0.0 computed it
   (great.stanford.edu is offline): its web interface, flexible region input, and its interfaces for rGREAT and scripts, with request limits
   and result cleanup set live by an administrator ([great/README.md](great/README.md)).
-- **Omics Canvas hub** (`hub/`) — spatial viewer, single-cell viewer and CRISPR screen explorer
+- **AlphaGenome** (`alphagenome/`, at `/alphagenome/`) — the lab's local AlphaGenome: predicted accessibility, histone
+  marks, RNA and variant effects in AlphaGenome Atlas, run on FREYA's GPUs only while someone needs it (Start on the page,
+  it stops by itself after an hour without use) ([alphagenome/README.md](alphagenome/README.md)).
+- **Omics Canvas hub** (`hub/`) — spatial viewer, single-cell viewer and Perturb viewer
   (deck.gl viewers adapted from the lab's ATHENA Co-Lab), a home page, and a data manager that finds files
   on the server and converts `.h5ad`, `.h5mu`, Seurat / Signac / SingleCellExperiment `.rds`, 10x `.h5`,
   Xenium bundles and SCEPTRE / IGVF result tables into the viewer format — including multiome, scATAC and
@@ -44,11 +47,12 @@ from the admin page ([auth/README.md](auth/README.md)); "keep me signed in" last
 | `/` | Home page: a card per module (`/hub/`, its old address, redirects here; `/hub/api/`, `/hub/static/` are the hub's API and assets) | `hub/server.py` (127.0.0.1:8893) |
 | `/spatial/` · `/spatial/<dataset>/` | Your spatial datasets (manage, add, convert) · the spatial viewer | hub |
 | `/single-cell/` · `/single-cell/<dataset>/` | Your single-cell datasets · the single-cell viewer | hub |
-| `/crispr/` · `/crispr/<screen>/` | Your CRISPR screens · the CRISPR screen explorer | hub |
+| `/crispr/` · `/crispr/<screen>/` | Your CRISPR screens · the Perturb viewer | hub |
 | `/genome-canvas/` | Genome Canvas | `genome-canvas/server.py` (127.0.0.1:8000) |
 | `/great/` | GREAT: page, API, rGREAT's `public/cgi-bin/*.php`, `rgreat.R` | `great/server.py` (127.0.0.1:8894, worker processes) |
 | `/auth/` · `/admin/` | Sign-in page · admin page (access passwords, sessions, sign-in, GREAT, servers and Workbench settings, logs) | `auth/server.py` (127.0.0.1:8895) |
 | `/workbench/` | Omics Workbench: downloads, bulk and single-cell pipelines, jobs | `workbench/server.py` (127.0.0.1:8896) |
+| `/alphagenome/` | AlphaGenome: start / stop page (`studio/`), AlphaGenome Atlas while it runs | `alphagenome/server.py` (127.0.0.1:8897; SSH tunnel to FREYA) |
 | `/lab` and everything else | JupyterLab (its own sign-in) | `jupyter-lab.service` (127.0.0.1:8891) |
 
 Viewer links take `?s=<slide>&assay=<assay>&gene=<gene>`; the explorer takes `?t=<target>&g=<gene>`.
@@ -96,9 +100,10 @@ omics-studio/            (on THOR: /nfs/baldar/quanyiz/vizhub)
   gateway/apache.conf.in the Apache gateway template (apache.conf is generated; logs in gateway/logs/)
   gateway/gateway.py     the same gateway in Python (used when Apache is not installed)
   deploy/                site.env.example (server settings), configure.py, systemd/*.in unit templates
-                         (vizhub-hub, genome-canvas, vizhub-great, vizhub-auth, vizhub-gateway alias genome-canvas-gateway,
+                         (vizhub-hub, genome-canvas, vizhub-great, vizhub-auth, vizhub-workbench, vizhub-alphagenome, vizhub-gateway alias genome-canvas-gateway,
                          JupyterLab drop-in)
   genome-canvas/         Genome Canvas (web app, server, macOS app)
+  alphagenome/           AlphaGenome control (server.py, remote.sh run on the GPU server by a restricted key, web/)
   great/                 GREAT (server.py, engine great.py, web/, tools/fetch_great_data.py, data/ not in git)
   auth/                  sign-in and admin pages (server.py, sessions.py used by every backend, PAM helper)
   workbench/             Omics Workbench (server.py, jobs, server monitor, pipelines, download.py, scripts/sc_analysis.R)
@@ -174,7 +179,7 @@ folder; the page only offers what that viewer reads and points to the right one 
   the datasets it combines, and their converted files are not deleted while a combined dataset uses them.
 - Removing a dataset only unregisters it; the hub can also delete the `.vizhub` folder it generated (not while another
   workspace still uses it), never source data.
-- **Shared datasets** (a button on the dataset pages, in the viewers' side panel and the CRISPR explorer's header; a
+- **Shared datasets** (a button on the dataset pages, in the viewers' side panel and the Perturb viewer's header; a
   dialog like Genome Canvas's Shared tracks, `hub/web/src/shared.ts`): every dataset any workspace has loaded, converted
   or combined (`state/library.json`, kept when the datasets made from it are removed), with a **Not in my workspace**
   switch (on by default). A combined dataset is listed once, with the data it combines inside it (expand it, as on the
@@ -237,7 +242,7 @@ Command line (same as the hub runs): `hub/venv/bin/python hub/converters/convert
 
 Genome Canvas opens views from its URL: `/genome-canvas/?locus=chr6:33,557,481-33,857,780&genome=hg38`
 `&highlight=chr6:33,707,481-33,707,780&track=<name>|<url>` (`locus` may be a gene; `highlight` and `track` repeat;
-regions are 1-based). The CRISPR explorer uses it for enhancer screens: the element ±150 kb, highlighted, with the
+regions are 1-based). The Perturb viewer uses it for enhancer screens: the element ±150 kb, highlighted, with the
 screen's **enhancer → target-gene loops** as two arc tracks (significant links / all tested links, arc height = |log2FC|,
 like the ATHENA locus view), served as BEDPE by `/hub/api/arcs/<screen>/{significant,all}.bedpe` from the hg38 gene
 table in `hub/resources/`. Gene buttons open the gene with the same loops.

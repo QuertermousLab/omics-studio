@@ -315,7 +315,7 @@ def inspect_file(path: Path):
         kind = 'crispr' if any(k in lname for k in ('sceptre', 'discovery', 'crispr', 'perturb_result')) else None
         return dict(type='rds', ready=False, kind=kind, details=dict(
             note='R object: Seurat (v3–v5) or SingleCellExperiment → spatial/single-cell viewer; '
-                 'sceptre_object or data.frame of results → CRISPR explorer. The type is read when converting.'), **base)
+                 'sceptre_object or data.frame of results → Perturb viewer. The type is read when converting.'), **base)
     if name.endswith(TABLE_EXT):
         try:
             det = _table_details(path)

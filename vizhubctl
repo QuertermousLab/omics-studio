@@ -3,7 +3,7 @@
 set -uo pipefail
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-units=(vizhub-hub.service genome-canvas.service vizhub-great.service vizhub-auth.service vizhub-workbench.service vizhub-gateway.service)
+units=(vizhub-hub.service genome-canvas.service vizhub-great.service vizhub-auth.service vizhub-workbench.service vizhub-alphagenome.service vizhub-gateway.service)
 
 # deploy/site.env (written by configure), else the THOR defaults
 settings="$dir/deploy/site.env"
@@ -24,8 +24,8 @@ Usage: ./vizhubctl <command>
                         (asks, Enter keeps a value; ./vizhubctl configure --help lists the options)
   install               generate the files from deploy/site.env, link the systemd units and enable them
   status                services, health checks, addresses and the port forwarding command
-  start | stop | restart [hub|canvas|great|auth|workbench|gateway]   (default: all; JupyterLab is never touched)
-  logs [hub|canvas|great|auth|workbench|gateway] follow systemd logs (default: hub)
+  start | stop | restart [hub|canvas|great|auth|workbench|alphagenome|gateway]   (default: all; JupyterLab is never touched)
+  logs [hub|canvas|great|auth|workbench|alphagenome|gateway] follow systemd logs (default: hub)
   access                                         follow the gateway's access and error logs
   build                                          rebuild the web pages (hub/web -> hub/static)
 
@@ -40,6 +40,7 @@ unit_for() {
     great) echo vizhub-great.service ;;
     auth) echo vizhub-auth.service ;;
     workbench) echo vizhub-workbench.service ;;
+    alphagenome) echo vizhub-alphagenome.service ;;
     gateway) echo vizhub-gateway.service ;;
     "") echo "${units[@]}" ;;
     *) echo "unknown service: $1" >&2; exit 2 ;;
@@ -64,16 +65,18 @@ status() {
   check "GREAT backend" "http://127.0.0.1:${VIZHUB_GREAT_PORT:-8894}/great/api/health"
   check "sign-in backend" "http://127.0.0.1:${VIZHUB_AUTH_PORT:-8895}/auth/api/health"
   check "Workbench backend" "http://127.0.0.1:${VIZHUB_WORKBENCH_PORT:-8896}/workbench/api/health"
+  check "AlphaGenome control" "http://127.0.0.1:${VIZHUB_ALPHAGENOME_PORT:-8897}/alphagenome/health"
   [[ -n "${VIZHUB_JUPYTER_PORT:-}" ]] && check "JupyterLab backend" "http://127.0.0.1:${VIZHUB_JUPYTER_PORT}/api"
   check "gateway: hub" "$gateway/hub/api/health"
   check "gateway: Genome Canvas" "$gateway/genome-canvas/api/health"
   check "gateway: GREAT" "$gateway/great/api/health"
   check "gateway: sign-in" "$gateway/auth/login"
   check "gateway: Workbench" "$gateway/workbench/api/health"
+  check "gateway: AlphaGenome" "$gateway/alphagenome/health"
   [[ -n "${VIZHUB_JUPYTER_PORT:-}" ]] && check "gateway: JupyterLab" "$gateway/lab"
   echo "Open"
   echo "  $public/   (the home page; /hub/ redirects there)   sign-in: ${VIZHUB_SIGN_IN:-on}   admin: $public/admin/"
-  echo "  $public/genome-canvas/   $public/great/   $public/spatial/   $public/single-cell/   $public/crispr/   $public/workbench/${VIZHUB_JUPYTER_PORT:+   $public/lab}"
+  echo "  $public/genome-canvas/   $public/great/   $public/spatial/   $public/single-cell/   $public/crispr/   $public/workbench/   $public/alphagenome/${VIZHUB_JUPYTER_PORT:+   $public/lab}"
   if [[ -n "${VIZHUB_SSH_HOST:-}" ]]; then
     local ssh_port="" target="127.0.0.1"
     [[ "${VIZHUB_SSH_PORT:-22}" != 22 ]] && ssh_port=" -p ${VIZHUB_SSH_PORT}"

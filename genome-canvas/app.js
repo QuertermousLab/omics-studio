@@ -3255,7 +3255,7 @@ async function searchLocation(queryValue) {
   }
 }
 
-// Tracks named in a link (e.g. enhancer-gene loops from the CRISPR explorer); one already open is not added again.
+// Tracks named in a link (e.g. enhancer-gene loops from the Perturb viewer); one already open is not added again.
 async function loadLinkedTracks(tracks) {
   const open = new Set(trackViews().map((view) => view.track?.url || view.track?.config?.url).filter(Boolean));
   let failed = 0;

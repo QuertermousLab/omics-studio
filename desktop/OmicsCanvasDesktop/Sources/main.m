@@ -1,5 +1,5 @@
 // Omics Canvas: a native macOS window around Omics Canvas's spatial viewer, single-cell viewer and
-// CRISPR screen explorer (the web pages of http://171.65.68.140:8892, opened with ?desktop=1 so the page
+// Perturb viewer (the web pages of http://171.65.68.140:8892, opened with ?desktop=1 so the page
 // leaves the window chrome to this app). Modeled on Genome Canvas Desktop (genome-canvas/macos), whose
 // palette, fonts, GCFillView and GCButton are copied unchanged below; Genome Canvas stays its own app.
 #import <AppKit/AppKit.h>
@@ -283,7 +283,7 @@ static NSArray<NSDictionary<NSString *, NSString *> *> *TVViewers(void) {
     return @[
         @{@"kind": @"spatial", @"path": @"spatial", @"title": @"Spatial viewer", @"detail": @"Xenium, Visium (HD), Slide-seq", @"symbol": @"square.grid.3x3.square"},
         @{@"kind": @"singlecell", @"path": @"single-cell", @"title": @"Single-cell viewer", @"detail": @"scRNA, multiome, scATAC", @"symbol": @"circle.hexagongrid"},
-        @{@"kind": @"crispr", @"path": @"crispr", @"title": @"CRISPR explorer", @"detail": @"Enhancer screens, Perturb-seq", @"symbol": @"chart.dots.scatter"},
+        @{@"kind": @"crispr", @"path": @"crispr", @"title": @"Perturb viewer", @"detail": @"Enhancer screens, Perturb-seq", @"symbol": @"chart.dots.scatter"},
     ];
 }
 

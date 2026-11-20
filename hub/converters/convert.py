@@ -988,7 +988,7 @@ def main():
                     mark('r-export')
                 if info['type'] == 'table':
                     if a.kind not in ('auto', 'crispr'):
-                        raise SystemExit(f'this RDS holds a table ({info.get("what")}), not cells: choose the CRISPR explorer')
+                        raise SystemExit(f'this RDS holds a table ({info.get("what")}), not cells: choose the Perturb viewer')
                     import crispr_to_viewer
                     crispr_to_viewer.convert_file(work / 'table.tsv', out, a, progress, source_label=str(src))
                     kind, layout = 'crispr', 'screen'

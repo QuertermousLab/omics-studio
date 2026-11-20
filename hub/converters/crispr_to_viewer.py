@@ -1,4 +1,4 @@
-"""CRISPR screen results table -> ATHENA CRISPR explorer files (one screen folder).
+"""CRISPR screen results table -> ATHENA Perturb viewer files (one screen folder).
 
 Generalizes ATHENA's igvf_to_viewer.py (which is tied to the lab's IGVF releases) to any results table
 with one row per (target, readout gene) test: SCEPTRE discovery results (grna_target, response_id,

@@ -1,6 +1,6 @@
 # Omics Studio — guide for agents and new sessions
 
-The project is **Omics Studio** (named Omics Canvas until 2026-11-13): 1. Genome Canvas (+ GREAT), 2. Omics Canvas (the
+The project is **Omics Studio** (named Omics Canvas until 2026-11-13): 1. Genome Canvas (+ GREAT, AlphaGenome), 2. Omics Canvas (the
 hub's viewers, unchanged), 3. Omics Workbench (`workbench/`, analysis; its own guide [workbench/AGENTS.md](workbench/AGENTS.md)).
 Internal names stay as they were (`vizhub-*` units, `vizhubctl`, the `omics_canvas_session` cookie, the PAM service `omics-canvas`); the GitHub repository is `omics-studio` (renamed 2026-11-13; GitHub redirects the old address).
 
@@ -37,11 +37,16 @@ own detailed guide, [genome-canvas/AGENTS.md](genome-canvas/AGENTS.md) (GREAT: [
 - `auth/` (standard library, `auth/server.py` on 127.0.0.1:8895, `vizhub-auth.service`): sign-in (`/auth/`) and the admin
   page (`/admin/`); every backend checks the session cookie with `auth/sessions.py` while `VIZHUB_SIGN_IN=on`. See
   [auth/AGENTS.md](auth/AGENTS.md): never turn it off or open a route without the user's word.
+- `alphagenome/` (standard library, `alphagenome/server.py` on 127.0.0.1:8897, `vizhub-alphagenome.service`): AlphaGenome at
+  `/alphagenome/`, started on demand on FREYA's GPUs (restricted SSH key, tunnel, idle stop) and serving the lab's
+  AlphaGenome Atlas (`~/baldar/alphagenome`, basePath `/alphagenome`); see [alphagenome/AGENTS.md](alphagenome/AGENTS.md).
 - `great/` (standard library, `great/server.py` on 127.0.0.1:8894, `vizhub-great.service`): GREAT region set enrichment at
   `/great/`; see [great/AGENTS.md](great/AGENTS.md). Its workspaces and server files are Genome Canvas's.
 - The home page groups the tools (`hub/web/pages/hub.html`, `.tool-group`): *Genome and regions* (Genome Canvas,
-  GREAT), *Omics Canvas: single-cell, spatial and CRISPR screens* and, below them, *Omics Workbench*; a new tool joins a group or gets its own. Service cards
-  (Genome Canvas, GREAT) show online / offline from `hub/config.json` `services` (written by `./vizhubctl configure`).
+  GREAT, AlphaGenome), *Omics Canvas: single-cell, spatial and CRISPR screens* and, below them, *Omics Workbench*; a new tool joins a group or gets its own. Service cards
+  (Genome Canvas, GREAT) show online / offline from `hub/config.json` `services` (written by `./vizhubctl configure`);
+  AlphaGenome's card shows running / start on demand (`/alphagenome/health`). The CRISPR screen viewer is called the
+  **Perturb viewer** (renamed 2026-11-20, the user's choice; its address stays `/crispr/`).
 - `desktop/OmicsWorkbenchDesktop/`: the Omics Workbench app (same build as Omics Canvas's; notifications when jobs end,
   Dock badge of running jobs; it was written without a Mac: the first macOS CI build is its first compile).
 - `desktop/OmicsCanvasDesktop/`: Objective-C AppKit + WKWebView app (only compiles on macOS; CI builds it).

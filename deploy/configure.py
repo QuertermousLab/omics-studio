@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'deploy' / 'site.env'
 EXAMPLE = ROOT / 'deploy' / 'site.env.example'
 UNITS = ['vizhub-hub.service', 'genome-canvas.service', 'vizhub-great.service', 'vizhub-auth.service', 'vizhub-workbench.service',
-         'vizhub-gateway.service']
+         'vizhub-alphagenome.service', 'vizhub-gateway.service']
 GENERATED = ROOT / 'deploy' / 'generated' / 'systemd'
 
 # (key, option, question) in the order they are asked
@@ -37,6 +37,12 @@ SETTINGS = [
     ('VIZHUB_GREAT_PORT', 'great-port', 'GREAT port (127.0.0.1)'),
     ('VIZHUB_AUTH_PORT', 'auth-port', 'Sign-in server port (127.0.0.1)'),
     ('VIZHUB_WORKBENCH_PORT', 'workbench-port', 'Omics Workbench port (127.0.0.1)'),
+    ('VIZHUB_ALPHAGENOME_PORT', 'alphagenome-port', 'AlphaGenome control port (127.0.0.1)'),
+    ('VIZHUB_ALPHAGENOME_TUNNEL_PORT', 'alphagenome-tunnel-port', "This machine's end of the SSH tunnel to AlphaGenome (127.0.0.1)"),
+    ('VIZHUB_ALPHAGENOME_SSH', 'alphagenome-ssh', 'AlphaGenome GPU server, user@host (restricted key, see alphagenome/README.md; empty: none)'),
+    ('VIZHUB_ALPHAGENOME_NAME', 'alphagenome-name', "The GPU server's name on the page"),
+    ('VIZHUB_ALPHAGENOME_REMOTE_PORT', 'alphagenome-remote-port', "AlphaGenome's proxy port on the GPU server"),
+    ('VIZHUB_ALPHAGENOME_IDLE_MINUTES', 'alphagenome-idle-minutes', 'Stop AlphaGenome after this many minutes without use (0: never)'),
     ('VIZHUB_SIGN_IN', 'sign-in', 'Ask everyone to sign in (THOR account or access password): on / off'),
     ('VIZHUB_JUPYTER_PORT', 'jupyter-port', 'JupyterLab port behind the gateway (empty: none)'),
     ('VIZHUB_JUPYTER_BIN', 'jupyter-bin', 'JupyterLab executable'),
@@ -47,7 +53,8 @@ SETTINGS = [
     ('VIZHUB_APACHE_BIN', 'apache-bin', 'Apache executable'),
     ('VIZHUB_APACHE_MODULES', 'apache-modules', 'Apache modules folder'),
 ]
-PORTS = {'VIZHUB_PORT', 'VIZHUB_HUB_PORT', 'VIZHUB_CANVAS_PORT', 'VIZHUB_GREAT_PORT', 'VIZHUB_AUTH_PORT', 'VIZHUB_WORKBENCH_PORT', 'VIZHUB_SSH_PORT'}
+PORTS = {'VIZHUB_PORT', 'VIZHUB_HUB_PORT', 'VIZHUB_CANVAS_PORT', 'VIZHUB_GREAT_PORT', 'VIZHUB_AUTH_PORT', 'VIZHUB_WORKBENCH_PORT', 'VIZHUB_SSH_PORT',
+         'VIZHUB_ALPHAGENOME_PORT', 'VIZHUB_ALPHAGENOME_TUNNEL_PORT', 'VIZHUB_ALPHAGENOME_REMOTE_PORT'}
 
 
 def read_env(path):
@@ -75,6 +82,10 @@ def valid(key, value):
         return value == '' or (value.isdigit() and 0 < int(value) < 65536)
     if key == 'VIZHUB_GATEWAY':
         return value in ('auto', 'apache', 'python')
+    if key == 'VIZHUB_ALPHAGENOME_IDLE_MINUTES':
+        return value.isdigit()
+    if key == 'VIZHUB_ALPHAGENOME_SSH':
+        return value == '' or bool(re.fullmatch(r'[A-Za-z0-9._-]+@[A-Za-z0-9.:_-]+', value))
     if key == 'VIZHUB_SIGN_IN':
         return value in ('on', 'off')
     if key == 'VIZHUB_LISTEN':
@@ -157,9 +168,10 @@ def main():
             raise SystemExit(f'{key}={values.get(key, "")!r} is not valid (--{option})')
     values['VIZHUB_PUBLIC_URL'] = values['VIZHUB_PUBLIC_URL'].rstrip('/')
     used = [values[k] for k in ('VIZHUB_PORT', 'VIZHUB_HUB_PORT', 'VIZHUB_CANVAS_PORT', 'VIZHUB_GREAT_PORT', 'VIZHUB_AUTH_PORT',
-                                'VIZHUB_WORKBENCH_PORT', 'VIZHUB_JUPYTER_PORT') if values[k]]
+                                'VIZHUB_WORKBENCH_PORT', 'VIZHUB_ALPHAGENOME_PORT', 'VIZHUB_ALPHAGENOME_TUNNEL_PORT',
+                                'VIZHUB_JUPYTER_PORT') if values[k]]
     if len(set(used)) != len(used):
-        raise SystemExit(f'the gateway, hub, Genome Canvas, GREAT, sign-in, Workbench and JupyterLab need different ports: {", ".join(used)}')
+        raise SystemExit(f'the gateway, hub, Genome Canvas, GREAT, sign-in, Workbench, AlphaGenome and JupyterLab need different ports: {", ".join(used)}')
 
     write_env(values)
     context = dict(values, VIZHUB_DIR=str(ROOT), VIZHUB_USER=getpass.getuser(),
@@ -171,7 +183,8 @@ def main():
         context['VIZHUB_GATEWAY_EXEC'] = (
             f"ExecStart=/usr/bin/env python3 {ROOT}/gateway/gateway.py --listen {values['VIZHUB_LISTEN']} --port {values['VIZHUB_PORT']}"
             f" --server-name {values['VIZHUB_SERVER_NAME']} --hub {values['VIZHUB_HUB_PORT']} --canvas {values['VIZHUB_CANVAS_PORT']}"
-            f" --great {values['VIZHUB_GREAT_PORT']} --auth {values['VIZHUB_AUTH_PORT']} --workbench {values['VIZHUB_WORKBENCH_PORT']}{jupyter}"
+            f" --great {values['VIZHUB_GREAT_PORT']} --auth {values['VIZHUB_AUTH_PORT']} --workbench {values['VIZHUB_WORKBENCH_PORT']}"
+            f" --alphagenome {values['VIZHUB_ALPHAGENOME_PORT']}{jupyter}"
             f" --log {ROOT}/gateway/logs/access.log\nEnvironment=PYTHONUNBUFFERED=1")
     else:
         context['VIZHUB_GATEWAY'] = 'Apache'

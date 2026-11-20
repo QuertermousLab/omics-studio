@@ -1,7 +1,7 @@
 # Omics Studio tutorial
 
 Omics Studio puts the lab's genomics data on one server page: **Genome Canvas** (genome browser, with **GREAT**
-region set enrichment), **Omics Canvas** — the **spatial viewer**, the **single-cell viewer** and the **CRISPR explorer** —
+region set enrichment and **AlphaGenome** predictions), **Omics Canvas** — the **spatial viewer**, the **single-cell viewer** and the **Perturb viewer** —
 and **Omics Workbench** for downloads and pipelines ([section 9](#9-omics-workbench-downloads-and-pipelines)). Each works in the browser and in a Mac app. This guide
 shows every module with screenshots of public data (10x Genomics Visium human heart and PBMC 3k, CELLxGENE human arterial
 atlas and mouse SMC time course, IGVF HCASMC CRISPR screens, UCSC hg38 annotation tracks, ENCODE MYB ChIP-seq peaks).
@@ -10,7 +10,7 @@ atlas and mouse SMC time course, IGVF HCASMC CRISPR screens, UCSC hg38 annotatio
 - [2. Genome Canvas](#2-genome-canvas)
 - [3. Spatial viewer](#3-spatial-viewer)
 - [4. Single-cell viewer](#4-single-cell-viewer)
-- [5. CRISPR explorer](#5-crispr-explorer)
+- [5. Perturb viewer](#5-perturb-viewer)
 - [6. Shared data](#6-shared-data)
 - [7. Adding and managing data](#7-adding-and-managing-data)
 - [8. Mac apps](#8-mac-apps)
@@ -56,7 +56,7 @@ whether each service is online and how many datasets your workspace has in each 
 
 `/genome-canvas/` — an IGV.js genome browser with the lab's server files.
 
-![Genome Canvas with enhancer–gene loops from the CRISPR explorer](images/genome-canvas-loops.png)
+![Genome Canvas with enhancer–gene loops from the Perturb viewer](images/genome-canvas-loops.png)
 
 - **Find a place**: type a gene, rsID or region in the locus box (`/` or ⌘K jumps there); change the genome (hg38,
   hg19, mm39, mm10, rn7, danRer11, dm6, sacCer3, or **Reference** for your own FASTA / 2bit).
@@ -100,7 +100,7 @@ whether each service is online and how many datasets your workspace has in each 
   **Share** in the top bar copies a link that restores the view; **Export PNG** saves the canvas with a transparent
   background. Exported figures (here and in the other viewers) are set in Arial.
 - **Links from other modules** open a region with highlights and tracks, e.g.
-  `/genome-canvas/?locus=chr6:33,557,481-33,857,780&highlight=chr6:33,707,481-33,707,780` (the CRISPR explorer adds
+  `/genome-canvas/?locus=chr6:33,557,481-33,857,780&highlight=chr6:33,707,481-33,707,780` (the Perturb viewer adds
   the screen's loops this way).
 
 ### GREAT: what a region set is near
@@ -162,6 +162,26 @@ it and tests GO terms, mouse and human phenotypes and single genes.
   GREAT 3.0.0's MSigDB, PANTHER, MGI Expression, Disease Ontology, InterPro, TreeFam and HGNC gene families, built for
   GREAT 4.0.4's genes (hg38 too); the seven GREAT 4.0.4 ontologies give the same results either way. In the API:
   `extraOntologies=1`; from rGREAT: `base_url = "http://171.65.68.140:8892/great/public-extra/cgi-bin"`.
+
+### AlphaGenome: predictions from sequence
+
+`/alphagenome/` — the lab's local [AlphaGenome](https://github.com/google-deepmind/alphagenome) model on FREYA's two
+GPUs, shown in **AlphaGenome Atlas**. It predicts chromatin accessibility (DNase, ATAC), H3K27ac and RNA for a region
+of up to 524 kb, with the coronary smooth muscle models (CL:0002592) and the pretrained biosamples. It also gives the
+effect of a variant (REF, ALT and Δ = ALT − REF) and the JASPAR motifs of the region. GRCh38 only; for research, not
+clinical use.
+
+- **Start it** first. It is not kept running, so that the GPUs stay free for other work. Open AlphaGenome from the home
+  page (*Genome and regions*) and press **Start AlphaGenome**. Loading the model takes about 1–3 minutes; the page
+  shows both GPUs' memory and opens the Atlas when it is ready. If it is already running, the button is **Open
+  AlphaGenome Atlas**.
+- **In the Atlas**, type a locus, a gene (`APOL1`, `ENSG…`) or an rsID (`rs429358`) in the locus box. Choose the
+  biosample and tracks on the left, then **Run prediction**. For a variant, fill in position / REF / ALT, or resolve
+  an rsID, and switch the view between REF, ALT and Δ at the top right. **Start / stop** in its header goes back to
+  the control page.
+- **It stops by itself** after an hour without predictions. Open Atlas tabs don't keep it running; batch SNP
+  predictions on FREYA do. **Stop and free the GPUs** stops it at once. If someone else used it in the last
+  10 minutes, or a batch job is running, only an administrator can stop it.
 
 ## 3. Spatial viewer
 
@@ -245,7 +265,7 @@ CCA/RPCA …), else the first embedding.
 
 ![scATAC: gene activity of Tcf21 and accessibility around it](images/sc-atac.png)
 
-## 5. CRISPR explorer
+## 5. Perturb viewer
 
 `/crispr/` — enhancer screens (e.g. TAP-seq) and Perturb-seq, from SCEPTRE, IGVF or any target / gene / log2FC /
 p-value table. The menu at the top switches screens (combined screens are listed under their name). A screen's
@@ -279,10 +299,10 @@ is none) or **Reports…** on the CRISPR datasets page: browse to the HTML file,
 
 Everything anyone in the lab has loaded is listed for everyone, so you can open what a colleague already converted or
 found without asking for its path. There is one list per module: **Shared tracks** in Genome Canvas, and **Shared
-datasets** (**Shared screens** in the CRISPR explorer) in the other three. Nothing is copied: you add the same files
+datasets** (**Shared screens** in the Perturb viewer) in the other three. Nothing is copied: you add the same files
 to your own list.
 
-**Shared datasets** — in the spatial and single-cell viewers the card under the dataset picker, in the CRISPR explorer
+**Shared datasets** — in the spatial and single-cell viewers the card under the dataset picker, in the Perturb viewer
 the button next to the screen picker, and on each dataset page the button next to *Datasets*. The number on it is how
 many shared datasets you do not have yet.
 
@@ -293,7 +313,7 @@ It lists every dataset anyone has loaded, converted or combined in this viewer: 
 is one row with the data it combines inside it, as on the dataset pages: the arrow next to its name opens it, and each
 of them can also be added on its own.
 
-![Shared screens in the CRISPR explorer: one screen ticked](images/shared-dialog.png)
+![Shared screens in the Perturb viewer: one screen ticked](images/shared-dialog.png)
 
 - Tick one or more and **Add selected** — in a viewer **Add & open**, which opens the first one. They join your
   workspace at once: nothing is copied, nothing is converted again. *open* at the end of a row looks at a dataset
@@ -409,7 +429,7 @@ opens with a click. Right-click a dataset for **Open**, **Edit Samples…**, **R
 
 - Toolbar: back, **Datasets** (add, convert, manage — ⌘O), Export PNG (⇧⌘E), open the page in your browser (⇧⌘B),
   light / dark (⇧⌘T), reload (⌘R).
-- Genome Canvas links (from the CRISPR explorer) open in **Genome Canvas.app** when it is installed — in place if it
+- Genome Canvas links (from the Perturb viewer) open in **Genome Canvas.app** when it is installed — in place if it
   is already open, keeping its tracks — otherwise in your browser.
 
 **Omics Workbench.app** — the Workbench pages ([section 9](#9-omics-workbench-downloads-and-pipelines)) in their own

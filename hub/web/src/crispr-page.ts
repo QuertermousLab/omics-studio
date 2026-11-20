@@ -1,5 +1,5 @@
 
-  // CRISPR screen explorer page: the <script> of QuertermousLab/athena src/components/CrisprExplorer.astro,
+  // Perturb viewer page: the <script> of QuertermousLab/athena src/components/CrisprExplorer.astro,
   // adapted to the hub (screen in the URL path /crispr/<screen>/, /hub/api/projects, no sign-in).
   import { css, esc, initChrome, loadWorkspace } from './common';
   import { mountManager } from './manager';
@@ -326,7 +326,7 @@
     showReports(screen);
     $('source').innerHTML = `${screen.group ? `<b>${esc(screen.group)}</b>${screen.groupDescription ? ` — ${esc(screen.groupDescription)}` : ''}<br>` : ''}${esc(screen.description ?? '')}${screen.citation ? ` <em>${esc(screen.citation)}</em>.` : ''}
       Data: ${(screen.sources ?? []).map((s) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">IGVF ${esc(s.accession)}</a>` : `<span class="mono">${esc(s.path ?? s.accession)}</span>`).join(', ')}`;
-    document.title = `${screen.title} · CRISPR explorer · Omics Canvas`;
+    document.title = `${screen.title} · Perturb viewer · Omics Canvas`;
     $('msg').hidden = true;
     try { await (screen.kind === 'enhancer' ? enhancer() : perturbseq()); } catch (e) { fail(esc((e as Error).message)); }
   }

@@ -3,11 +3,11 @@
 gateway/apache.conf.in, for servers without Apache (THOR's apache2 package was removed on 2026-11-12).
 
   python3 gateway/gateway.py --listen 0.0.0.0 --port 8892 --hub 8893 --canvas 8000 --great 8894 --auth 8895 \
-      --workbench 8896 [--jupyter 8891] [--log gateway/logs/access.log]
+      --workbench 8896 --alphagenome 8897 [--jupyter 8891] [--log gateway/logs/access.log]
 
 Routes (as apache.conf): slashless entry points redirect (/great -> /great/, /auth -> /auth/login); / and /hub/,
 /spatial/, /single-cell/, /crispr/ -> hub; /genome-canvas/ -> Genome Canvas (prefix stripped, X-Forwarded-Prefix);
-/auth/ /admin/ -> sign-in; /great/ -> GREAT; /workbench/ -> Omics Workbench; everything else -> JupyterLab (with
+/auth/ /admin/ -> sign-in; /great/ -> GREAT; /workbench/ -> Omics Workbench; /alphagenome/ -> AlphaGenome; everything else -> JupyterLab (with
 WebSocket upgrades), or 404 without it. Like mod_proxy it keeps Host, adds X-Forwarded-For / -Host / -Server (the
 backends tell proxied requests from their own internal calls by X-Forwarded-For) and drops X-Remote-User. Bodies are
 streamed both ways, so large downloads and uploads do not sit in memory.
@@ -28,7 +28,7 @@ HOP = {"connection", "keep-alive", "proxy-authenticate", "proxy-authorization", 
        "proxy-connection"}
 # requests left out of the access log: the lab dashboard (10.130.73.73) checks the site every few seconds
 QUIET_AGENTS = {"LabDashboard"}
-SLASHLESS = re.compile(r"^/(hub|spatial|single-cell|crispr|genome-canvas|great|admin|workbench)$")
+SLASHLESS = re.compile(r"^/(hub|spatial|single-cell|crispr|genome-canvas|great|admin|workbench|alphagenome)$")
 CHUNK = 256 * 1024
 TIMEOUT = 600  # ProxyTimeout 600
 
@@ -51,6 +51,8 @@ class Gateway(BaseHTTPRequestHandler):
             return ports["great"], self.path, {}
         if path.startswith("/workbench/"):
             return ports["workbench"], self.path, {}
+        if path.startswith("/alphagenome/") and ports.get("alphagenome"):
+            return ports["alphagenome"], self.path, {}
         if ports.get("jupyter"):
             return ports["jupyter"], self.path, {}
         return None
@@ -257,20 +259,21 @@ def main():
     ap.add_argument("--listen", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=8892)
     ap.add_argument("--server-name", default=socket.gethostname())
-    for name, port in (("hub", 8893), ("canvas", 8000), ("great", 8894), ("auth", 8895), ("workbench", 8896)):
+    for name, port in (("hub", 8893), ("canvas", 8000), ("great", 8894), ("auth", 8895), ("workbench", 8896), ("alphagenome", 8897)):
         ap.add_argument("--" + name, type=int, default=port)
     ap.add_argument("--jupyter", type=int, default=0, help="JupyterLab's port (0: none)")
     ap.add_argument("--log", default="", help="access log (combined format)")
     a = ap.parse_args()
     server = Server((a.listen, a.port), Gateway)
-    server.ports = {"hub": a.hub, "canvas": a.canvas, "great": a.great, "auth": a.auth, "workbench": a.workbench, "jupyter": a.jupyter}
+    server.ports = {"hub": a.hub, "canvas": a.canvas, "great": a.great, "auth": a.auth, "workbench": a.workbench,
+                    "alphagenome": a.alphagenome, "jupyter": a.jupyter}
     server.server_name_ = a.server_name
     server.log_lock = threading.Lock()
     server.log = None
     if a.log:
         os.makedirs(os.path.dirname(os.path.abspath(a.log)), exist_ok=True)
         server.log = open(a.log, "a", buffering=1)
-    print("Omics Studio gateway on {}:{} -> hub {hub}, canvas {canvas}, great {great}, auth {auth}, workbench {workbench}, jupyter {jupyter}".format(
+    print("Omics Studio gateway on {}:{} -> hub {hub}, canvas {canvas}, great {great}, auth {auth}, workbench {workbench}, alphagenome {alphagenome}, jupyter {jupyter}".format(
         a.listen, a.port, **server.ports), flush=True)
     server.serve_forever()
 

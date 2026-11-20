@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f9fb">
+  <title>AlphaGenome · Omics Studio</title>
+  <link rel="icon" href="alphagenome.svg">
+  <script>
+    // The theme of every Omics Studio page (Genome Canvas's key): a saved choice wins, else the system's.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("genome-canvas:theme"); } catch (error) { /* storage disabled */ }
+      var dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+    })();
+  </script>
+  <link rel="stylesheet" href="control.css?v=20261120.1">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+  </svg>
+  <header class="topbar">
+    <a class="brand" href="/" title="Omics Studio home">
+      <img src="/hub/static/studio.svg" alt="" width="22" height="22"><span>Omics Studio</span>
+    </a>
+    <span class="crumb">/</span>
+    <span class="brand module"><img src="alphagenome.svg" alt="" width="22" height="22"><span>AlphaGenome</span></span>
+    <span class="spacer"></span>
+    <a class="quiet-button" href="/genome-canvas/">Genome Canvas</a>
+    <button class="quiet-button theme-toggle" id="theme-toggle" type="button" title="Switch theme" aria-label="Switch theme">
+      <svg class="icon icon-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="icon icon-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="card status-card">
+      <div class="status-head">
+        <div>
+          <h1>AlphaGenome</h1>
+          <p class="lead">Predicted chromatin accessibility, histone marks, RNA and variant effects from DNA sequence, with
+            the lab's coronary smooth muscle models. The model runs on <b id="server-name">the GPU server</b> only when
+            someone needs it.</p>
+        </div>
+        <span class="chip" id="phase-chip">Checking…</span>
+      </div>
+
+      <p class="message" id="message" hidden></p>
+
+      <div class="actions">
+        <button class="primary-button" id="start" type="button" hidden>Start AlphaGenome</button>
+        <a class="primary-button" id="open" href="/alphagenome/" hidden>Open AlphaGenome Atlas</a>
+        <button class="secondary-button" id="stop" type="button" hidden>Stop and free the GPUs</button>
+        <span class="hint" id="action-hint"></span>
+      </div>
+
+      <dl class="facts" id="facts"></dl>
+
+      <div class="gpus" id="gpus"></div>
+
+      <details class="log" id="log-box" hidden>
+        <summary>Start-up log</summary>
+        <pre id="log"></pre>
+      </details>
+    </section>
+
+    <section class="card notes">
+      <h2>How it works</h2>
+      <ul>
+        <li><b>Start</b> loads the model on both GPUs (about 1–3 minutes). The page follows it and opens the Atlas
+          when it is ready.</li>
+        <li>It <b>stops by itself</b> after <span id="idle-text">an hour</span> without predictions, and the GPUs are
+          freed. Open Atlas pages do not keep it running; batch SNP predictions on the server do.</li>
+        <li><b>Stop</b> frees the GPUs at once. If someone else used it in the last 10 minutes, or a batch job is
+          running, only an administrator can stop it.</li>
+        <li>Human genome, GRCh38. Positions from hg19 tracks must be lifted over first. For research only:
+          AlphaGenome's model terms do not allow clinical use.</li>
+      </ul>
+    </section>
+  </main>
+  <script type="module" src="control.mjs?v=20261120.1"></script>
+</body>
+</html>

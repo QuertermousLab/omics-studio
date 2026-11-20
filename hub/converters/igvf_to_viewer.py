@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert the lab's released IGVF CRISPRi screen results (SCEPTRE tables) for the CRISPR screen explorer.
+"""Convert the lab's released IGVF CRISPRi screen results (SCEPTRE tables) for the Perturb viewer.
 
 Each screen becomes one folder (Drive ATHENA/crispr/view/<screen>/, read through /api/data/crispr/…):
 

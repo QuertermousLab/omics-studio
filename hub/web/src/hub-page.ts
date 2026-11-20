@@ -4,13 +4,20 @@ import { api, initChrome, loadWorkspace, onWorkspace } from './common';
 
 initChrome('hub');
 
-// the services' cards (Genome Canvas, GREAT): online / offline, from the hub's health checks
+// the services' cards (Genome Canvas, GREAT, AlphaGenome): online / offline, from the hub's health checks
 api<{ id: string; ok: boolean }[]>('/hub/api/services').then((list) => {
   for (const el of document.querySelectorAll<HTMLElement>('[data-tool] [data-state]')) {
     const tool = el.closest<HTMLElement>('[data-tool]')!.dataset.tool;
     const service = list.find((x) => x.id === tool);
     const show = (ok: boolean) => { el.textContent = ok ? 'online' : 'offline'; el.className = `chip ${ok ? 'chip--ok' : 'chip--bad'}`; };
-    if (service) show(service.ok);
+    if (tool === 'alphagenome') {
+      // started on demand: running, ready to start, or its control server is down
+      fetch('/alphagenome/health').then((r) => r.json()).then((h: { phase: string }) => {
+        const running = h.phase === 'ready';
+        el.textContent = running ? 'running' : h.phase === 'starting' ? 'starting…' : h.phase === 'unknown' ? 'unreachable' : 'start on demand';
+        el.className = `chip ${running ? 'chip--ok' : h.phase === 'unknown' ? 'chip--bad' : ''}`;
+      }).catch(() => show(false));
+    } else if (service) show(service.ok);
     // a service the hub does not check yet (added after it started): ask it directly
     else fetch(`/${tool}/api/health`).then((r) => show(r.ok)).catch(() => show(false));
   }

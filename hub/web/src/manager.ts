@@ -43,7 +43,7 @@ const PAGE: Record<Kind, { path: string; name: string; noun: string; lede: strin
     lede: 'Tissue sections — Xenium, Visium / Visium HD, Slide-seq and other data with cell or spot coordinates.' },
   singlecell: { path: '/single-cell/', name: 'Single-cell viewer', noun: 'single-cell datasets',
     lede: 'scRNA-seq, snRNA-seq and multiome data shown on UMAP or another embedding.' },
-  crispr: { path: '/crispr/', name: 'CRISPR explorer', noun: 'CRISPR screens',
+  crispr: { path: '/crispr/', name: 'Perturb viewer', noun: 'CRISPR screens',
     lede: 'Enhancer screens and Perturb-seq results (SCEPTRE, IGVF or any target / gene / log2FC / p-value table).' },
 };
 const FORMATS: Record<Kind, string[]> = {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Omics Canvas: the landing page at :8892/ (the gateway's root; /hub/ redirects there), the ATHENA-style spatial and single-cell
-viewers (/spatial/, /single-cell/) and CRISPR screen explorer (/crispr/), and the API behind them.
+viewers (/spatial/, /single-cell/) and Perturb viewer (/crispr/), and the API behind them.
 
 Datasets are found on /nfs with the file browser. Files already in the ATHENA viewer format are
 registered as they are; anything else (h5ad, rds, 10x h5, loom, Xenium bundles, CRISPR result tables)
@@ -43,7 +43,7 @@ CONFIG = json.loads((HERE / 'config.json').read_text())
 ROOTS = [dict(label=r['label'], path=os.path.normpath(r['path'])) for r in CONFIG['roots']]
 PYTHON = str(HERE / 'venv' / 'bin' / 'python')
 KIND_PATH = {'spatial': 'spatial', 'singlecell': 'single-cell', 'crispr': 'crispr'}
-KIND_NAME = {'spatial': 'Spatial viewer', 'singlecell': 'Single-cell viewer', 'crispr': 'CRISPR explorer'}
+KIND_NAME = {'spatial': 'Spatial viewer', 'singlecell': 'Single-cell viewer', 'crispr': 'Perturb viewer'}
 
 STATE.mkdir(parents=True, exist_ok=True)
 (STATE / 'jobs').mkdir(exist_ok=True)

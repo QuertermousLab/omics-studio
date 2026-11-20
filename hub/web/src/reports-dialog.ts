@@ -1,5 +1,5 @@
 // "Gene Program Explorer" and other interactive HTML reports of a CRISPR screen: list them, locate an HTML file on
-// /nfs with a small folder browser, add or remove it. Used by the CRISPR explorer (next to the screen picker) and by
+// /nfs with a small folder browser, add or remove it. Used by the Perturb viewer (next to the screen picker) and by
 // the CRISPR datasets page (Reports…). Reports are kept per data folder by the hub (state/reports.json).
 import { api, esc } from './common';
 
@@ -14,7 +14,7 @@ function build() {
   dlg.className = 'ws-dialog';
   dlg.innerHTML = `<form method="dialog" class="ws-card combine reports">
     <div class="ws-head"><div><b data-r-title>Gene Program Explorer</b><small>Interactive HTML pages of this screen, e.g. the
-      PerturbNMF gene program explorer. They open from the CRISPR explorer for everyone who has the screen; the files stay
+      PerturbNMF gene program explorer. They open from the Perturb viewer for everyone who has the screen; the files stay
       where they are. One next to the screen's results (…/perturbnmf/gene_program_explorer/report/) is found on its own.</small></div></div>
     <ul class="combine__pool reports__list" data-r-list></ul>
     <div><span class="eyebrow">Locate an HTML file</span>

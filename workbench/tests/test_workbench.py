@@ -313,7 +313,7 @@ class Gateway(unittest.TestCase):
                 pass
 
         backends = {}
-        for name in ("hub", "canvas", "workbench", "auth", "great"):
+        for name in ("hub", "canvas", "workbench", "auth", "great", "alphagenome"):
             b = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Backend)
             b.name = name
             threading.Thread(target=b.serve_forever, daemon=True).start()
@@ -326,12 +326,13 @@ class Gateway(unittest.TestCase):
         g.server_name_, g.log, g.log_lock = "test", None, threading.Lock()
         threading.Thread(target=g.serve_forever, daemon=True).start()
         base = "http://127.0.0.1:{}".format(g.server_address[1])
-        for path in ("/", "/workbench/api/x", "/genome-canvas/api/y?z=1", "/auth/login"):
+        for path in ("/", "/workbench/api/x", "/genome-canvas/api/y?z=1", "/auth/login", "/alphagenome/api/genes?c=1"):
             req = urllib.request.Request(base + path, headers={"X-Remote-User": "evil", "X-Forwarded-Prefix": "/evil"})
             data = urllib.request.urlopen(req).read()
             self.assertEqual(len(data), len(json.dumps({"ok": True})) * 2000)
         names = [s[0] for s in seen]
-        self.assertEqual(names, ["hub", "workbench", "canvas", "auth"])
+        self.assertEqual(names, ["hub", "workbench", "canvas", "auth", "alphagenome"])
+        self.assertEqual(seen[4][1], "/alphagenome/api/genes?c=1")  # the path stays: the Atlas has basePath /alphagenome
         self.assertEqual(seen[2][1], "/api/y?z=1")
         self.assertEqual(seen[2][3], "/genome-canvas")
         self.assertIsNone(seen[0][3])

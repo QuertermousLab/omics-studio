@@ -1,6 +1,6 @@
 # Omics Canvas (macOS)
 
-A native Mac window for Omics Canvas's **spatial viewer, single-cell viewer and CRISPR explorer**
+A native Mac window for Omics Canvas's **spatial viewer, single-cell viewer and Perturb viewer**
 (http://171.65.68.140:8892). Built like Genome Canvas Desktop (`../../genome-canvas/macos/GenomeCanvasDesktop`):
 AppKit + WKWebView, the same Nord light/dark palette, fonts and buttons. Genome Canvas stays its own app;
 links to it (and to the hub home page or JupyterLab) open in the web browser.

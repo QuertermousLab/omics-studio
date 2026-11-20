@@ -108,7 +108,7 @@ let sharedOpener: (() => void) | null = null;
 /** The page's "Shared datasets" dialog (shared.ts bindShared), for the Mac app's sidebar. */
 export const setSharedOpener = (open: () => void) => { sharedOpener = open; };
 
-const PAGE_TITLE: Record<string, string> = { hub: '', spatial: 'Spatial viewer', 'single-cell': 'Single-cell viewer', crispr: 'CRISPR explorer', workbench: 'Omics Workbench' };
+const PAGE_TITLE: Record<string, string> = { hub: '', spatial: 'Spatial viewer', 'single-cell': 'Single-cell viewer', crispr: 'Perturb viewer', workbench: 'Omics Workbench' };
 
 /** Top bar: page title, theme toggle, workspace chip; the desktop app bridge. */
 export function initChrome(navId: string) {

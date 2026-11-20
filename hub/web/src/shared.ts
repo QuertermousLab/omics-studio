@@ -1,7 +1,7 @@
 // "Shared datasets": the hub's shared library (/hub/api/library) as a dialog in the style of Genome Canvas's Shared
 // tracks — everything any workspace has loaded, converted or combined for one viewer; tick some and add them
 // (nothing is copied or converted). "Not in my workspace" (on by default, like Genome Canvas's "Only hg38") leaves
-// out what the caller already has. Opened from the viewers' side panels, the CRISPR explorer's header and the dataset
+// out what the caller already has. Opened from the viewers' side panels, the Perturb viewer's header and the dataset
 // pages. "Shared by you" lists the caller's own entries to unshare. A combined dataset is listed with the data it
 // combines inside it (expand it, as on the dataset pages); those are not listed again on their own.
 import { api, esc, fmtAgo, fmtBytes, requireWorkspace, setSharedOpener, toast } from './common';
@@ -79,7 +79,7 @@ export const sharedCard = (kind: Kind) => `<button type="button" class="sh-sourc
   <span class="sh-source__text"><strong>Shared ${NOUN[kind][1]}<span class="chip sh-count" data-shared-count hidden></span></strong><small>Add what others in the lab have loaded</small></span>
   <svg class="icon sh-source__arrow" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>`;
 
-/** A compact button (dataset pages, the CRISPR explorer's header). */
+/** A compact button (dataset pages, the Perturb viewer's header). */
 export const sharedButton = (kind: Kind) => `<button type="button" class="btn btn--light btn--sm" data-shared-open title="${NOUN[kind][1][0].toUpperCase()}${NOUN[kind][1].slice(1)} others in the lab have loaded, converted or combined: add them without looking for their files"><svg class="icon"><use href="#i-users"/></svg>Shared ${NOUN[kind][1]}<span class="chip sh-count" data-shared-count hidden></span></button>`;
 
 interface Options {

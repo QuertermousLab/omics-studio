@@ -6,6 +6,7 @@
 #   /great/           -> GREAT                                127.0.0.1:@VIZHUB_GREAT_PORT@ (great/server.py)
 #   /auth/ /admin/    -> sign-in and admin pages              127.0.0.1:@VIZHUB_AUTH_PORT@ (auth/server.py)
 #   /workbench/       -> Omics Workbench (analysis)           127.0.0.1:@VIZHUB_WORKBENCH_PORT@ (workbench/server.py)
+#   /alphagenome/     -> AlphaGenome (start/stop, its Atlas)  127.0.0.1:@VIZHUB_ALPHAGENOME_PORT@ (alphagenome/server.py)
 @jupyter@#   everything else   -> JupyterLab (/lab, /api, kernels...)  127.0.0.1:@VIZHUB_JUPYTER_PORT@
 # Run by vizhub-gateway.service (systemd user unit); manage with ../vizhubctl.
 ServerRoot "@VIZHUB_DIR@/gateway"
@@ -43,10 +44,10 @@ ProxyTimeout 600
 
 RewriteEngine On
 # Landing page and slashless entry points (mod_rewrite runs before ProxyPass)
-RewriteRule ^/(hub|spatial|single-cell|crispr|genome-canvas|great|admin|workbench)$ /$1/ [R=302,L]
+RewriteRule ^/(hub|spatial|single-cell|crispr|genome-canvas|great|admin|workbench|alphagenome)$ /$1/ [R=302,L]
 RewriteRule ^/auth/?$ /auth/login [R=302,L]
 
-# Visualization hub: the home page at /, spatial / single-cell viewers, CRISPR explorer and their API (/hub/)
+# Visualization hub: the home page at /, spatial / single-cell viewers, Perturb viewer and their API (/hub/)
 ProxyPassMatch   ^(/)$         http://127.0.0.1:@VIZHUB_HUB_PORT@$1
 ProxyPass        /hub/         http://127.0.0.1:@VIZHUB_HUB_PORT@/hub/
 ProxyPassReverse /hub/         http://127.0.0.1:@VIZHUB_HUB_PORT@/hub/
@@ -89,6 +90,13 @@ ProxyPassReverse /great/ http://127.0.0.1:@VIZHUB_GREAT_PORT@/great/
 ProxyPass        /workbench/ http://127.0.0.1:@VIZHUB_WORKBENCH_PORT@/workbench/
 ProxyPassReverse /workbench/ http://127.0.0.1:@VIZHUB_WORKBENCH_PORT@/workbench/
 <Location "/workbench/">
+    RequestHeader unset X-Remote-User
+</Location>
+
+# AlphaGenome (alphagenome/server.py): its control page and, while the model runs on the GPU server, AlphaGenome Atlas
+ProxyPass        /alphagenome/ http://127.0.0.1:@VIZHUB_ALPHAGENOME_PORT@/alphagenome/ nocanon
+ProxyPassReverse /alphagenome/ http://127.0.0.1:@VIZHUB_ALPHAGENOME_PORT@/alphagenome/
+<Location "/alphagenome/">
     RequestHeader unset X-Remote-User
 </Location>
 

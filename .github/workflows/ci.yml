@@ -68,6 +68,19 @@ jobs:
       - name: Omics Workbench (job scripts, permissions, passwords) and the Python gateway
         run: python -B -m unittest discover -s tests
 
+  alphagenome:
+    runs-on: ubuntu-24.04  # Python 3.8 (ZORAN runs 3.8) is not on ubuntu-latest (26.04)
+    defaults:
+      run:
+        working-directory: alphagenome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+      - name: AlphaGenome control (start / stop, tunnel, idle stop) against a fake GPU server
+        run: python -B -m unittest discover -s tests
+
   omics-canvas:
     runs-on: ubuntu-24.04  # Python 3.8 (ZORAN runs 3.8) is not on ubuntu-latest (26.04)
     steps:

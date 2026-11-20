@@ -1,4 +1,4 @@
-// Canvas scatter plots for the CRISPR screen explorer (volcano and rank plots): axes, hover, click,
+// Canvas scatter plots for the Perturb viewer (volcano and rank plots): axes, hover, click,
 // highlighted and labeled points. Thousands of points, redrawn whole on every change.
 // Chrome colors come from the hub theme (css()), so a redraw follows a light/dark switch.
 import { css } from '../common';

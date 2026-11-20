@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- AlphaGenome in Omics Studio: a predicted signal over a double helix, on Genome Canvas's teal tile -->
+  <rect width="64" height="64" rx="14" fill="#4c7a86"/>
+  <path d="M10 44c6 0 7-8 11-8s4 6 8 6 5-22 9-22 5 16 9 16 4-6 7-6" fill="none" stroke="#eceff4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 52c8-7 16-7 20 0s12 7 20 0M12 52c8 7 16 7 20 0s12-7 20 0" fill="none" stroke="#a3be8c" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M19 49.2v5.6M27 49.4v5.2M37 49.4v5.2M45 49.2v5.6" stroke="#a3be8c" stroke-width="1.6" stroke-linecap="round"/>
+</svg>
