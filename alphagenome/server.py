@@ -206,6 +206,9 @@ class Controller:
                 self.remote_state, self.error = out, ""
             else:
                 self.remote_state = None
+                if "Permission denied" in (err or ""):
+                    err = ("{} does not accept Omics Studio's key yet: its line has to be added to ~/.ssh/authorized_keys "
+                           "there (alphagenome/README.md, Setting it up)".format(self.name))
                 self.error = err or "the GPU server did not answer (exit {})".format(code)
         return out
 

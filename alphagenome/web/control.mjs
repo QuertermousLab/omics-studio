@@ -65,7 +65,7 @@ function render(s) {
     : s.phase === "ready" && !s.tunnel ? "Connecting…" : "";
 
   // an unreachable server's message goes when it answers again; messages of Start / Stop stay until the next one
-  if (s.phase === "unknown") { message(`Can't reach ${s.name}: ${s.error}`); unreachable = true; }
+  if (s.phase === "unknown") { message(s.error.startsWith(s.name) ? s.error : `Can't reach ${s.name}: ${s.error}`); unreachable = true; }
   else if (unreachable) { message(""); unreachable = false; }
   if (s.phase === "ready" && $("message").textContent.startsWith("Starting")) message("");
 
