@@ -42,7 +42,7 @@ browser ── gateway :8892 ── alphagenome/server.py :8897 (THOR)
   (`predict_snps.py`, `run_background_snps.py`, …) or other clients connected to the proxy or workers. Only
   administrators can override that with `stop-force`, after a confirmation.
 - The Atlas is served unchanged through the tunnel; the path stays `/alphagenome/…`. Omics Studio's session cookie is
-  not passed on.
+  not passed on, and responses come uncompressed (the Atlas would answer zstd, which not every browser reads).
 
 ## Setting it up
 
@@ -66,7 +66,9 @@ browser ── gateway :8892 ── alphagenome/server.py :8897 (THOR)
 ## Changes made to AlphaGenome for this (2026-11-20)
 
 - `ui/next.config.ts`: `basePath: "/alphagenome"`. The pages' requests go through `apiUrl()` (`ui/app/base-path.ts`).
-- `deploy/proxy.py`: the pages' `/ui-api/…` also answers under `/alphagenome/`, and `/` redirects there. Command-line
+- `deploy/proxy.py`: the pages' `/ui-api/…` also answers under `/alphagenome/`, and `/` redirects there. The proxy serves
+  the built assets (`/alphagenome/_next/` from `ui/dist/client/alphagenome/_next`) itself: vinext 1.0.0-beta.2's server
+  does not find them under a basePath in this Cloudflare-plugin build. Command-line
   clients and batch scripts keep using the root (`/v1/…`, `/healthz`). An SSH tunnel's `http://127.0.0.1:18080/` still
   works: it leads to `/alphagenome/`.
 - The Atlas uses Genome Canvas's Nord theme, light and dark, and follows the same saved choice. It is set in the

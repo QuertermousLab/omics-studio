@@ -464,9 +464,12 @@ class Handler(BaseHTTPRequestHandler):
             conn.putrequest(self.command, self.path, skip_host=True, skip_accept_encoding=True)
             for k, v in self.headers.items():
                 # Omics Studio's session cookie and sign-in headers stay here: AlphaGenome has no use for them
-                if k.lower() in HOP or k.lower() in ("content-length", "cookie", "authorization", "x-remote-user"):
+                if k.lower() in HOP or k.lower() in ("content-length", "cookie", "authorization", "x-remote-user",
+                                                      "accept-encoding"):
                     continue
                 conn.putheader(k, v)
+            # uncompressed through the tunnel: the Atlas would answer zstd, which not every browser reads
+            conn.putheader("Accept-Encoding", "identity")
             if body is not None:
                 conn.putheader("Content-Length", str(len(body)))
             conn.endheaders(body)
