@@ -419,6 +419,11 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
 @property(nonatomic, strong) NSMenuItem *locusCompareMenuItem;
 @property(nonatomic, strong) GCButton *greatButton;
 @property(nonatomic, strong) NSMenuItem *greatMenuItem;
+@property(nonatomic, strong) GCButton *alphaGenomeButton;      // beside GREAT: AlphaGenome's panel over the canvas
+@property(nonatomic, strong) NSStackView *moduleActions;       // GREAT | AlphaGenome
+@property(nonatomic, strong) GCButton *agPredictButton;        // toolbar: an rsID's AlphaGenome variant effect
+@property(nonatomic, strong) NSMenuItem *alphaGenomeMenuItem;
+@property(nonatomic, strong) NSMenuItem *agPredictMenuItem;
 @property(nonatomic, strong) NSMenuItem *openFilesMenuItem;
 @property(nonatomic, strong) NSMenuItem *localBackendMenuItem;
 @property(nonatomic, strong) NSMenuItem *remoteServerMenuItem;
@@ -663,11 +668,23 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     toolActions.spacing = 8;
     // GO terms and phenotypes enriched near a region set (the web rail's GREAT button): the server's GREAT page,
     // opened in the default browser; server mode only
-    self.greatButton = [GCButton buttonWithLabel:@"GREAT enrichment" symbol:@"square.stack.3d.up" style:GCButtonStyleSecondary target:self action:@selector(openGREAT:)];
+    self.greatButton = [GCButton buttonWithLabel:@"GREAT" symbol:@"square.stack.3d.up" style:GCButtonStyleSecondary target:self action:@selector(openGREAT:)];
     self.greatButton.font = GCUIFont(12.5, 550);
     self.greatButton.label = self.greatButton.label;
     self.greatButton.toolTip = @"GREAT: GO terms and phenotypes enriched near a set of regions (also in a region track's menu)";
     self.greatButton.identifier = @"GreatButton";
+    // AlphaGenome (the web rail's AlphaGenome button): start / stop it, cell type and outputs, Predict this view, in a
+    // panel over the canvas; server mode only, and shown once the server's /alphagenome/ answers (state snapshot)
+    self.alphaGenomeButton = [GCButton buttonWithLabel:@"AlphaGenome" symbol:@"waveform.path.ecg" style:GCButtonStyleSecondary target:self action:@selector(openAlphaGenome:)];
+    self.alphaGenomeButton.font = GCUIFont(12.5, 550);
+    self.alphaGenomeButton.label = self.alphaGenomeButton.label;
+    self.alphaGenomeButton.toolTip = @"AlphaGenome: start / stop the model on the GPU server, choose cell type and outputs, predict this view";
+    self.alphaGenomeButton.identifier = @"AlphaGenomeButton";
+    self.alphaGenomeButton.hidden = YES;
+    self.moduleActions = [NSStackView stackViewWithViews:@[self.greatButton, self.alphaGenomeButton]];
+    self.moduleActions.orientation = NSUserInterfaceLayoutOrientationHorizontal;
+    self.moduleActions.distribution = NSStackViewDistributionFillEqually;
+    self.moduleActions.spacing = 8;
 
     NSView *secondDivider = [self dividerLine];
 
@@ -725,7 +742,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
 
     NSArray<NSView *> *rows = @[
         brand, sourceLabel, segments, self.workspaceLabel, self.workspaceControls, firstDivider,
-        libraryHeading, self.filesButton, self.sharedButton, sourceActions, toolActions, self.greatButton, secondDivider, currentHeading, trackScroll, tips, status
+        libraryHeading, self.filesButton, self.sharedButton, sourceActions, toolActions, self.moduleActions, secondDivider, currentHeading, trackScroll, tips, status
     ];
     NSStackView *column = [NSStackView stackViewWithViews:rows];
     column.translatesAutoresizingMaskIntoConstraints = NO;
@@ -742,7 +759,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     [column setCustomSpacing:8 afterView:self.sharedButton];
     [column setCustomSpacing:8 afterView:sourceActions];
     [column setCustomSpacing:8 afterView:toolActions];
-    [column setCustomSpacing:16 afterView:self.greatButton];
+    [column setCustomSpacing:16 afterView:self.moduleActions];
     [column setCustomSpacing:12 afterView:secondDivider];
     [column setCustomSpacing:12 afterView:trackScroll];
     [column setCustomSpacing:12 afterView:tips];
@@ -757,7 +774,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
         [trackScroll.heightAnchor constraintGreaterThanOrEqualToConstant:96],
         [self.statusDot.widthAnchor constraintEqualToConstant:7], [self.statusDot.heightAnchor constraintEqualToConstant:7],
     ]];
-    for (NSView *row in @[segments, self.workspaceControls, firstDivider, self.filesButton, self.sharedButton, sourceActions, toolActions, self.greatButton, secondDivider, currentHeading, trackScroll, tips]) {
+    for (NSView *row in @[segments, self.workspaceControls, firstDivider, self.filesButton, self.sharedButton, sourceActions, toolActions, self.moduleActions, secondDivider, currentHeading, trackScroll, tips]) {
         [constraints addObject:[row.widthAnchor constraintEqualToAnchor:column.widthAnchor]];
     }
     [NSLayoutConstraint activateConstraints:constraints];
@@ -874,6 +891,15 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     self.clearHighlightsButton = [self toolButton:@"eraser" tip:@"Clear highlights" action:@selector(clearHighlights:)];
     self.clearHighlightsButton.enabled = NO;
     GCButton *exportButton = [self toolButton:@"photo" tip:@"Export PNG" action:@selector(exportPNG:)];
+    // the web stage's AG predict: grey until AlphaGenome runs (and the genome is hg38); server mode only
+    self.agPredictButton = [GCButton buttonWithLabel:@"AG predict" symbol:@"waveform.path.ecg" style:GCButtonStyleTool target:self action:@selector(openAlphaGenomePredict:)];
+    self.agPredictButton.font = GCUIFont(12.5, 550);
+    self.agPredictButton.label = self.agPredictButton.label;
+    self.agPredictButton.toolTip = @"AG predict: AlphaGenome's REF, ALT and ALT − REF for an rsID (start AlphaGenome first)";
+    self.agPredictButton.identifier = @"AGPredictButton";
+    self.agPredictButton.fixedHeight = 32;
+    self.agPredictButton.enabled = NO;
+    self.agPredictButton.hidden = YES;
     NSView *spacer = [[NSView alloc] initWithFrame:NSZeroRect];
     [spacer setContentHuggingPriority:1 forOrientation:NSLayoutConstraintOrientationHorizontal];
     GCButton *favorites = [self iconButton:@"star" tip:@"Favorite profiles" action:@selector(openFavorites:)];
@@ -886,7 +912,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
 
     NSStackView *controls = [NSStackView stackViewWithViews:@[
         genomeField, locusField, goButton, zoomOut, zoomIn, [self verticalRule],
-        self.highlightButton, self.highlightColorWell, self.clearHighlightsButton, exportButton,
+        self.agPredictButton, self.highlightButton, self.highlightColorWell, self.clearHighlightsButton, exportButton,
         spacer, favorites, self.themeButton, self.reloadButton, share
     ]];
     controls.translatesAutoresizingMaskIntoConstraints = NO;
@@ -1242,6 +1268,14 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     self.greatMenuItem.target = self;
     self.greatMenuItem.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagOption;
     [fileMenu addItem:self.greatMenuItem];
+    self.alphaGenomeMenuItem = [[NSMenuItem alloc] initWithTitle:@"AlphaGenome…" action:@selector(openAlphaGenome:) keyEquivalent:@"a"];
+    self.alphaGenomeMenuItem.target = self;
+    self.alphaGenomeMenuItem.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagOption;
+    [fileMenu addItem:self.alphaGenomeMenuItem];
+    self.agPredictMenuItem = [[NSMenuItem alloc] initWithTitle:@"AlphaGenome Variant Effect…" action:@selector(openAlphaGenomePredict:) keyEquivalent:@"v"];
+    self.agPredictMenuItem.target = self;
+    self.agPredictMenuItem.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagOption;
+    [fileMenu addItem:self.agPredictMenuItem];
     [fileMenu addItem:[NSMenuItem separatorItem]];
     NSMenuItem *export = [[NSMenuItem alloc] initWithTitle:@"Export PNG…" action:@selector(exportPNG:) keyEquivalent:@"e"];
     export.target = self;
@@ -1313,6 +1347,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     self.locusCompareMenuItem.hidden = self.localMode;
     self.greatButton.hidden = self.localMode; // GREAT's genes and ontologies are on the server
     self.greatMenuItem.hidden = self.localMode;
+    [self updateAlphaGenome:nil];  // AlphaGenome runs on the lab's GPU server: hidden on This Mac
     self.openFilesMenuItem.title = self.localMode ? @"Open Local Files…" : @"Open Server Files…";
     self.localBackendMenuItem.state = self.localMode ? NSControlStateValueOn : NSControlStateValueOff;
     self.remoteServerMenuItem.state = self.localMode ? NSControlStateValueOff : NSControlStateValueOn;
@@ -1608,6 +1643,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
     [self updateTrackCount];
     self.highlightButton.state = [snapshot[@"highlightMode"] boolValue] ? NSControlStateValueOn : NSControlStateValueOff;
     self.clearHighlightsButton.enabled = [snapshot[@"highlightCount"] integerValue] > 0;
+    [self updateAlphaGenome:[snapshot[@"alphaGenome"] isKindOfClass:[NSDictionary class]] ? snapshot[@"alphaGenome"] : nil];
     NSString *color = snapshot[@"highlightColor"];
     if ([color isKindOfClass:[NSString class]]) self.highlightColorWell.color = [self colorFromHex:color];
     NSString *status = [snapshot[@"status"] isKindOfClass:[NSString class]] ? snapshot[@"status"] : @"Ready";
@@ -1724,6 +1760,7 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
     if (menuItem.action == @selector(removeSelectedTrack:)) return self.trackTable.selectedRow >= 0;
+    if (menuItem.action == @selector(openAlphaGenomePredict:)) return self.agPredictButton.enabled;  // grey while AlphaGenome is off
     return YES;
 }
 
@@ -1796,6 +1833,22 @@ typedef NS_ENUM(NSInteger, GCButtonStyle) {
 - (void)openLiftover:(id)sender { [self callDesktopMethod:@"openLiftover" arguments:@[]]; }
 - (void)openLocusCompare:(id)sender { [self callDesktopMethod:@"openLocusCompare" arguments:@[]]; }
 - (void)openGREAT:(id)sender { [self callDesktopMethod:@"openGREAT" arguments:@[]]; }
+- (void)openAlphaGenome:(id)sender { [self callDesktopMethod:@"openAlphaGenome" arguments:@[]]; }
+- (void)openAlphaGenomePredict:(id)sender { [self callDesktopMethod:@"openAlphaGenomePredict" arguments:@[]]; }
+
+// The page's AlphaGenome state ({available, phase, canPredict}; nil before it answers): server mode only.
+- (void)updateAlphaGenome:(NSDictionary *)state {
+    BOOL available = !self.localMode && [state[@"available"] boolValue];
+    BOOL canPredict = available && [state[@"canPredict"] boolValue];
+    self.alphaGenomeButton.hidden = !available;
+    self.agPredictButton.hidden = !available;
+    self.agPredictButton.enabled = canPredict;
+    self.alphaGenomeMenuItem.hidden = !available;
+    self.agPredictMenuItem.hidden = !available;
+    NSString *phase = [state[@"phase"] isKindOfClass:[NSString class]] ? state[@"phase"] : @"";
+    NSDictionary *labels = @{@"ready": @"running", @"starting": @"starting", @"stopping": @"stopping", @"stopped": @"off, GPUs free", @"unknown": @"unreachable"};
+    self.alphaGenomeButton.toolTip = [NSString stringWithFormat:@"AlphaGenome (%@): start / stop the model on the GPU server, choose cell type and outputs, predict this view", labels[phase] ?: @"checking"];
+}
 - (void)saveTrackset:(id)sender { if (!self.localMode) [self callDesktopMethod:@"saveTracksetFromView" arguments:@[]]; }
 - (void)shareView:(id)sender { [self callDesktopMethod:@"share" arguments:@[]]; }
 - (void)exportPNG:(id)sender { [self callDesktopMethod:@"exportPNG" arguments:@[]]; }

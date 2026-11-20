@@ -838,3 +838,7 @@ button.liftover-locus:hover { text-decoration: underline; }
 html[data-theme="dark"] .ag-card { background: var(--surface-2); }
 html[data-theme="dark"] .ag-switch span { background: var(--text-2); }
 html[data-theme="dark"] .ag-switch[aria-checked="true"] span { background: var(--on-accent); }
+/* the Mac app (track rail hidden): the AlphaGenome panel as a floating window over the canvas, not modal */
+.ag-panel-dialog { position: fixed; inset: 12px auto auto 12px; width: min(330px, calc(100vw - 24px)); margin: 0; z-index: 40; }
+.ag-panel-dialog .dialog-content { padding: 12px 14px 14px; max-height: calc(100vh - 110px); overflow: auto; }
+.ag-panel-dialog .ag-card { border: 0; padding: 0; box-shadow: none; background: transparent; animation: none; }

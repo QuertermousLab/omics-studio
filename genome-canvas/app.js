@@ -7,7 +7,7 @@ import { locusCompareSVG, locusCompareTSV, snpTooltip } from "./locuscompare.mjs
 import { DARK_CANVAS, LIGHT_CANVAS, canvasTheme, installDarkCanvasAdapter, setCanvasTheme } from "./canvas-theme.mjs?v=20261007.2";
 import { normalizeReferenceResources } from "./reference-resources.mjs?v=20261005.1";
 import { announceWorkspace, chooseWorkspace, watchWorkspace } from "./workspace-chooser.mjs?v=20261113.1";
-import { installAlphaGenome } from "./alphagenome.mjs?v=20261120.2";
+import { installAlphaGenome } from "./alphagenome.mjs?v=20261120.4";
 import {
   DEFAULT_HIGHLIGHT_COLOR,
   HIGHLIGHT_FILL_ALPHA,
@@ -226,6 +226,8 @@ function desktopStateSnapshot() {
     highlightMode: state.highlightMode,
     highlightColor: normalizeHexColor(ui.highlightColor.value, DEFAULT_HIGHLIGHT_COLOR),
     highlightCount: state.highlights.length,
+    // the native AlphaGenome / AG predict buttons (server mode): { available, phase, canPredict }
+    alphaGenome: state.alphaGenome?.snapshot() || { available: false, phase: "unknown", canPredict: false },
     tracks: desktopTrackViews().map(({ track }, index) => ({
       index,
       name: track.name || track.id || "Untitled track",
@@ -3684,6 +3686,8 @@ window.GenomeCanvasDesktop = Object.freeze({
   openLiftover() { void openLiftover(); return true; },
   openLocusCompare() { void openLocusCompare(); return true; },
   openGREAT() { openGREAT(); return true; },
+  openAlphaGenome() { state.alphaGenome?.openPanel(); return Boolean(state.alphaGenome); },
+  openAlphaGenomePredict() { state.alphaGenome?.openPredict(); return Boolean(state.alphaGenome); },
   saveTracksetFromView() { tracksetFromView(); return true; },
   openWorkspace() { void openWorkspaceChooser(); return true; },
   manageWorkspaces() { showWorkspaceGate(); return true; },
@@ -3758,6 +3762,7 @@ function bindEvents() {
     loadTrack: (config) => loadConfiguredTrack(config),
     toast,
     setStatus,
+    onChange: notifyDesktopHost,
     search: (locus) => state.browser.search(locus),
     highlight: (chr, start, end) => {
       state.highlights.push({ id: `alphagenome-${Date.now()}`, chr, start, end, color: normalizeHexColor(ui.highlightColor.value, DEFAULT_HIGHLIGHT_COLOR) });

@@ -76,7 +76,7 @@ export function installAlphaGenome(ctx) {
   const s = {
     available: false, phase: "unknown", status: null, backend: saved.backend === "ag2" ? "ag2" : "ag1",
     catalogs: {}, selected: saved.tracks || {}, biosample: saved.biosample || {}, busy: false, loaded: [],
-    watchedUntil: 0, resolved: null, expanded: false,
+    watchedUntil: 0, resolved: null, expanded: false, lastSnapshot: "",
   };
 
   // ---------------------------------------------------------------- the model's state
@@ -126,12 +126,65 @@ export function installAlphaGenome(ctx) {
         : !hg38 ? "AlphaGenome predicts on GRCh38 (hg38) only"
           : "AlphaGenome: an rsID's effect (REF, ALT, ALT − REF) on the chosen tracks";
     if (!hg38 && ready) note("AlphaGenome predicts on GRCh38: switch the genome to hg38.", true);
+    const snapshot = JSON.stringify(snapshotState());
+    if (snapshot !== s.lastSnapshot) { s.lastSnapshot = snapshot; ctx.onChange?.(); }
+  }
+
+  /** For the Mac app's native AlphaGenome and AG predict buttons (desktopStateSnapshot). */
+  function snapshotState() {
+    return { available: s.available, phase: s.phase, canPredict: !ui.stageButton.disabled };
+  }
+
+  // ---- the Mac app hides the track rail: its AlphaGenome button opens the same panel as a floating window
+  let panelDialog = null;
+  function railHidden() {
+    const rail = document.querySelector("#track-rail");
+    return !rail || getComputedStyle(rail).display === "none";
+  }
+  function openPanel(message = "") {
+    s.expanded = true;
+    s.watchedUntil = Date.now() + 2 * 60_000;
+    if (railHidden()) {
+      if (!panelDialog) {
+        panelDialog = document.createElement("dialog");
+        panelDialog.className = "modal ag-panel-dialog";
+        panelDialog.innerHTML = `<div class="dialog-shell"><header class="dialog-header"><div><span>Genome Canvas</span><h2>AlphaGenome</h2></div>
+          <button class="dialog-close" type="button" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></header>
+          <div class="dialog-content"></div></div>`;
+        panelDialog.querySelector(".dialog-content").append(ui.card);
+        panelDialog.querySelector(".dialog-close").addEventListener("click", () => panelDialog.close());
+        panelDialog.addEventListener("close", () => { s.expanded = false; render(); });
+        document.body.append(panelDialog);
+      }
+      if (!panelDialog.open) panelDialog.show();  // not modal: the tracks stay usable beside it
+    } else {
+      ui.card.scrollIntoView({ block: "nearest" });
+    }
+    render();
+    if (message) note(message, true);
+    refresh();
+  }
+  function openPredict() {
+    if (ui.stageButton.disabled) {
+      openPanel(s.phase === "ready" ? "AlphaGenome predicts on GRCh38: switch the genome to hg38." : "Start AlphaGenome first (the switch above), then AG predict.");
+      return;
+    }
+    ui.stageButton.click();
   }
 
   function note(text, error = false) {
     ui.note.textContent = text || "";
     ui.note.classList.toggle("error", Boolean(error));
   }
+
+  // in the Mac app a new window would replace the canvas: the host opens the page in the default browser
+  document.querySelector(".ag-manage")?.addEventListener("click", (event) => {
+    if (!document.documentElement.classList.contains("desktop-embedded")) return;
+    event.preventDefault();
+    try {
+      window.webkit?.messageHandlers?.genomeCanvas?.postMessage({ type: "openURL", url: new URL(event.currentTarget.getAttribute("href"), location.href).href });
+    } catch { /* not in the Mac app */ }
+  });
 
   ui.toggle.addEventListener("click", () => {
     s.expanded = !s.expanded;
@@ -382,5 +435,6 @@ export function installAlphaGenome(ctx) {
   });
 
   refresh().finally(schedule);
-  return { refresh, render, isAlphaGenomeTrack: (config) => Boolean(config?.genomeCanvasAlphaGenome) };
+  return { refresh, render, snapshot: snapshotState, openPanel, openPredict,
+    isAlphaGenomeTrack: (config) => Boolean(config?.genomeCanvasAlphaGenome) };
 }

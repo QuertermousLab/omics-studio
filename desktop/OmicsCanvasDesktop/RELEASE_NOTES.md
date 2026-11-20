@@ -1,5 +1,9 @@
 Native Omics Canvas Desktop builds for Apple Silicon Macs. First launch: see [../../RELEASE_NOTES.md](../../RELEASE_NOTES.md).
 
+## What's new in 1.4.2
+
+- The CRISPR screen explorer is now called the **Perturb viewer** (sidebar and window title)
+
 ## What's new in 1.4.1
 
 - **Type**: the window's text and headings are set in the system font (San Francisco), as the web pages now are

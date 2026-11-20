@@ -1,5 +1,16 @@
 Native Genome Canvas Desktop builds for Apple Silicon Macs.
 
+## What's new in 1.11.0
+
+- **AlphaGenome** (server mode, on servers with Omics Studio's AlphaGenome): the **AlphaGenome** button beside GREAT
+  (**File → AlphaGenome…**, ⌥⌘A) opens a panel over the canvas. Its switch starts the model on the lab's GPU server or
+  stops it to free the GPUs. Choose **AG1 · local** (the lab's GPUs, with the coronary smooth muscle models) or
+  **AG2 · API**, a cell type (default: coronary artery smooth muscle cells) and its outputs, then **Predict this view**
+  adds them as tracks (up to 524 kb, hg38).
+- **AG predict** in the toolbar (**File → AlphaGenome Variant Effect…**, ⌥⌘V), grey while AlphaGenome is off: an rsID
+  jumps to a 131 kb window around it, highlights it and adds a REF / ALT overlay and an ALT − REF track per output
+- **GREAT** is the button's shorter name, beside AlphaGenome
+
 ## What's new in 1.10.1
 
 - **Type**: the window's text and headings are set in the system font (San Francisco), as the web pages now are

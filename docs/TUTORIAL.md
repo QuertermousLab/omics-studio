@@ -415,12 +415,15 @@ or choose it in **View → Appearance** (⇧⌘T switches): the pages inside the
 **Genome Canvas.app** — the genome browser in a native window: the same canvas with a native track list, genome and
 locus fields, highlight tools and workspace menu. **Server** uses THOR's files; **This Mac** starts a built-in backend
 for files on your Mac (**Open local files**). The **Shared tracks** card (Server only) opens the lab's shared track
-list. Shortcuts: ⌘O server files, ⌘D public data, ⇧⌘L shared tracks, ⇧⌘S favorites, ⇧⌘E PNG,
-⇧⌘T light / dark, ⌘, server and port forwarding.
+list. **AlphaGenome** beside **GREAT** (Server only, from 1.11.0) opens the AlphaGenome panel over the canvas (on /
+off, AG1 / AG2, cell type, outputs, Predict this view); **AG predict** in the toolbar, grey while AlphaGenome is off,
+takes an rsID (see [AlphaGenome](#alphagenome-predictions-from-sequence)). Shortcuts: ⌘O server files, ⌘D public data,
+⇧⌘L shared tracks, ⇧⌘S favorites, ⇧⌘E PNG, ⌥⌘A AlphaGenome, ⌥⌘V AlphaGenome variant effect, ⇧⌘T light / dark,
+⌘, server and port forwarding.
 
 ![Genome Canvas.app opened from a link: region and highlight](images/app-genome-canvas.png)
 
-**Omics Canvas.app** — the spatial, single-cell and CRISPR viewers in one window. The sidebar picks the viewer
+**Omics Canvas.app** — the spatial and single-cell viewers and the Perturb viewer in one window. The sidebar picks the viewer
 (⌘1 / ⌘2 / ⌘3), your workspace and your datasets: groups (combined datasets, projects) open with the arrow, a sample
 opens with a click. Right-click a dataset for **Open**, **Edit Samples…**, **Rename…**, **Remove…**,
 **Combine Datasets…**; the stack button above the list combines too. **Shared datasets** (**Shared screens**) under the list

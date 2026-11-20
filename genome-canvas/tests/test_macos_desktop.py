@@ -12,7 +12,7 @@ class MacOSDesktopClientTests(unittest.TestCase):
         with (MAC_APP / "Resources" / "Info.plist").open("rb") as stream:
             info = plistlib.load(stream)
         self.assertEqual(info["CFBundleIdentifier"], "org.genomecanvas.desktop")
-        self.assertEqual(info["CFBundleShortVersionString"], "1.10.1")
+        self.assertEqual(info["CFBundleShortVersionString"], "1.11.0")
         self.assertEqual(info["LSMinimumSystemVersion"], "13.0")
         self.assertTrue(info["NSAppTransportSecurity"]["NSAllowsArbitraryLoadsInWebContent"])
         self.assertNotIn("NSAllowsArbitraryLoads", info["NSAppTransportSecurity"])
@@ -57,6 +57,19 @@ class MacOSDesktopClientTests(unittest.TestCase):
         self.assertNotIn("NSWindowStyleMaskFullSizeContentView", source)
         self.assertIn('action:@selector(createWorkspace:)', source)
         self.assertIn('action:@selector(deleteWorkspace:)', source)
+
+    def test_alphagenome_native_controls_match_the_page_bridge(self):
+        source = (MAC_APP / "Sources" / "main.m").read_text()
+        app = (ROOT / "app.js").read_text()
+        for method in ("openAlphaGenome", "openAlphaGenomePredict"):
+            self.assertIn('callDesktopMethod:@"{}"'.format(method), source)
+            self.assertIn("  {}() {{".format(method), app)
+        # grey until the page says AlphaGenome runs; hidden on This Mac
+        self.assertIn('[snapshot[@"alphaGenome"] isKindOfClass:[NSDictionary class]]', source)
+        self.assertIn("BOOL available = !self.localMode &&", source)
+        self.assertIn("alphaGenome: state.alphaGenome?.snapshot()", app)
+        self.assertIn('@"AGPredictButton"', source)
+        self.assertIn("self.greatButton, self.alphaGenomeButton", source)
 
     def test_client_can_launch_a_single_workspace_local_backend(self):
         source = (MAC_APP / "Sources" / "main.m").read_text(encoding="utf-8")
