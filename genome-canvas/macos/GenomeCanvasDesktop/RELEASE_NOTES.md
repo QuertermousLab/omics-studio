@@ -1,5 +1,11 @@
 Native Genome Canvas Desktop builds for Apple Silicon Macs.
 
+## What's new in 1.12.0
+
+- **Export as PNG, SVG or PDF**: the toolbar's export button opens a menu of the three formats; **File → Export PNG…**
+  (⇧⌘E), **Export SVG…** and **Export PDF…** (⌥⇧⌘E). SVG and PDF are vector, set in Arial, on a transparent background
+  (the Hi-C heatmap stays an embedded image). LocusCompare saves PDF too (server mode).
+
 ## What's new in 1.11.0
 
 - **AlphaGenome** (server mode, on servers with Omics Studio's AlphaGenome): the **AlphaGenome** button beside GREAT

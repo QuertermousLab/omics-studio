@@ -1,5 +1,11 @@
 Native Omics Canvas Desktop builds for Apple Silicon Macs. First launch: see [../../RELEASE_NOTES.md](../../RELEASE_NOTES.md).
 
+## What's new in 1.5.0
+
+- **Export as PNG, SVG or PDF**: the toolbar's export button opens a menu of the three formats; **File → Export PNG…**
+  (⇧⌘E), **Export SVG…** and **Export PDF…** (⌥⇧⌘E). In SVG and PDF the cells, labels and scale bar are vector (the
+  cells in view), the tissue image is embedded; the plot windows save PDF beside SVG and PNG
+
 ## What's new in 1.4.2
 
 - The CRISPR screen explorer is now called the **Perturb viewer** (sidebar and window title)
